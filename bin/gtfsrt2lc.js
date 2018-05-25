@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const GtfsIndex = require('../lib/gtfsIndex');
-const Gtfsrt2lc = require('../lib/gtfsrt2lc');
+const GtfsIndex = require('../lib/GtfsIndex');
+const Gtfsrt2LC = require('../lib/Gtfsrt2LC');
 var program = require('commander');
 
 console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
@@ -44,8 +44,8 @@ var format = program.format || 'json';
 // Get static GTFS indexes
 var gtfs = new GtfsIndex(program.static);
 gtfs.getIndexes().then(async ([routes, trips, calendar_dates]) => {
-    //Proceed to parse GTFS-RT
-    let gtfsrt2lc = new Gtfsrt2lc(program.realTime, routes, trips, calendar_dates, template);
+    // Proceed to parse GTFS-RT
+    let gtfsrt2lc = new Gtfsrt2LC(program.realTime, routes, trips, calendar_dates, template);
     let rtlc = await gtfsrt2lc.parse(format);
     // Output data
     rtlc.pipe(process.stdout);
