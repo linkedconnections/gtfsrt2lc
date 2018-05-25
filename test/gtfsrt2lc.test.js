@@ -1,5 +1,5 @@
-const GtfsIndex = require('../lib/gtfsIndex.js');
-const Gtfsrt2lc = require('../lib/gtfsrt2lc');
+const GtfsIndex = require('../lib/GtfsIndex');
+const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
 
 const static_path = './test/data/static_rawdata.zip';
 const rt_path = './test/data/realtime_rawdata';
