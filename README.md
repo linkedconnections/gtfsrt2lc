@@ -44,16 +44,16 @@ In order to define the URI of the different entities of a public transport netwo
 {
     "stop": "http://example.org/stations/{stop_id}",
     "route": "http://example.org/routes/{routes.route_short_name}{trips.trip_short_name}",
-    "trip": "http://example.org/trips/{routes.route_short_name}{trips.trip_short_name}/{calendar_dates.date}",
-    "connection": "http://example.org/connections/{connection.departureStop}/{calendar_dates.date}/{routes.route_short_name}{trips.trip_short_name}"
+    "trip": "http://example.org/trips/{routes.route_short_name}{trips.trip_short_name}/{connection.departureTime(YYYYMMDD)}",
+    "connection": "http://example.org/connections/{connection.departureStop}/{connection.departureTime(YYYYMMDD)}/{routes.route_short_name}{trips.trip_short_name}"
 }
 ```
-The parameters used to build the URIs are given following an object-like notation (`object.variable`) where the left side references a CSV file present in the provided `GTFS` datasource and the right side references a specific column of such file. We use the data from a reference `GTFS` datasource to create the URIs as with only the data present in a `GTFS-RT` update may not be feasible to create persistent URIs. The `GFTS` files that can be used to create the URIs in the current implementation of this tool are `routes`, `trips` and `calendar_dates`. As for the variables, any column that exists in those files can be referenced. Next we describe how are the entities URIs build based on these templates:
+The parameters used to build the URIs are given following an object-like notation (`object.variable`) where the left side references a CSV file present in the provided `GTFS` datasource and the right side references a specific column of such file. We use the data from a reference `GTFS` datasource to create the URIs as with only the data present in a `GTFS-RT` update may not be feasible to create persistent URIs. The `GFTS` files that can be used to create the URIs in the current implementation of this tool are `routes` and `trips`. As for the variables, any column that exists in those files can be referenced. Next we describe how are the entities URIs build based on these templates:
 
 - **stop:** A Linked Connection references 2 different stops (departure and arrival stop). The data used to build these specific URIs comes directly from the `GTFS-RT` update, which is why here we do not specify a CSV file from the reference `GTFS` datasource. The variable name chosen for the example is `stop_id` but it can be freely named.
 - **route:** For the route identifier we rely on the `routes.route_short_name` and the `trips.trip_short_name` variables.
-- **trip:** In the case of the trip we add the associated `calendar_dates.date` on top of the route URI.
-- **connection:** Finally for a connection identifier we resort to its departure stop with `connection.departureStop`, the `calendar_dates.date`, the `routes.route_short_name` and the `trips.trip_short_name`. In this case we reference a special entity we called `connection` which contains the related basic data that can be extracted from a `GTFS-RT` update for every Linked Connection. A `connection` entity contains these parameters that can be used on the URIs definition: `connection.departureStop`, `connection.arrivalStop`, `connection.departureTime` and `connection.arrivalTime`.
+- **trip:** In the case of the trip we add the associated `connection.departureTime(YYYYMMDD)` on top of the route URI. The `connection` entity will be explained next.
+- **connection:** Finally for a connection identifier we resort to its departure stop with `connection.departureStop`, the `connection.departureTime(YYYYMMDD)`, the `routes.route_short_name` and the `trips.trip_short_name`. In this case we reference a special entity we called `connection` which contains the related basic data that can be extracted from a `GTFS-RT` update for every Linked Connection. A `connection` entity contains these parameters that can be used on the URIs definition: `connection.departureStop`, `connection.arrivalStop`, `connection.departureTime` and `connection.arrivalTime`. As both `departureTime` and `arrivalTime` are date objects, the expected format can be defined using brackets.
 
 How you define your URI strategy to obtain stable identifiers will depend on the actual data that exists on both the `GTFS` datasource and the `GTFS-RT` updates, and how these data is mantained.
 
@@ -125,9 +125,9 @@ const { GtfsIndex, Gtfsrt2LC} = require('gtfsrt2lc');
 
 // Get static GTFS indexes
 const indexer = new GtfsIndex('path or URL to your GTFS datasource');
-indexer.getIndexes().then(async ([routes, trips, calendar_dates]) => {
+indexer.getIndexes().then(async ([routes, trips]) => {
     // Proceed to parse GTFS-RT
-    let parser = new Gtfsrt2LC('path or URL to your GTFS-RT update', routes, trips, calendar_dates, 'path/to/your/URI_template.json');
+    let parser = new Gtfsrt2LC('path or URL to your GTFS-RT update', routes, trips, 'path/to/your/URI_template.json');
     // Choose the serialization format among json, jsonld, csv, turtle and ntriples
     let rtlc = await parser.parse('jsonld');
     // Output data

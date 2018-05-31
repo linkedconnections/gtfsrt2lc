@@ -1,6 +1,6 @@
 {
     "stop": "http://example.org/stations/{stop_id}",
     "route": "http://example.org/routes/{routes.route_short_name}{trips.trip_short_name}",
-    "trip": "http://example.org/trips/{routes.route_short_name}{trips.trip_short_name}/{calendar_dates.date}",
-    "connection": "http://example.org/connections/{connection.departureStop}/{calendar_dates.date}/{routes.route_short_name}{trips.trip_short_name}"
+    "trip": "http://example.org/trips/{routes.route_short_name}{trips.trip_short_name}/{connection.departureTime(YYYYMMDD)}",
+    "connection": "http://example.org/connections/{connection.departureStop}/{connection.departureTime(YYYYMMDD)}/{routes.route_short_name}{trips.trip_short_name}"
 }
