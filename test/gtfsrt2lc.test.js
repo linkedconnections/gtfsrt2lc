@@ -29,6 +29,37 @@ test('Extract indexes (routes, trips) from sample static GTFS data (test/data/st
     expect(t.size).toBeGreaterThan(0);
 });
 
+test('Check all parsed connections are consistent regarding departure and arrival times', async () => {
+    let grt = new Gtfsrt2lc(rt_path, routes, trips, mock_uris);
+    let connStream = await grt.parse('json');
+    let flag = true;
+
+    expect.assertions(2);
+
+    connStream.on('data', async conn => {
+        let depTime = new Date(conn['departureTime']);
+        let arrTime = new Date(conn['arrivalTime']);
+        if (depTime > arrTime) {
+            console.error('Inconsistent Connection: ' + conn['@id']);
+            flag = false;
+        }
+    });
+
+    let stream_end = new Promise((resolve, reject) => {
+        connStream.on('end', () => {
+            resolve(true);
+        });
+        connStream.on('error', () => {
+            resolve(false);
+        });
+    });
+
+    let finish = await stream_end;
+
+    expect(flag).toBeTruthy();
+    expect(finish).toBeTruthy();
+});
+
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in json format', async () => {
     let grt2json = new Gtfsrt2lc(rt_path, routes, trips, mock_uris);
     let rt_stream = await grt2json.parse('json');
