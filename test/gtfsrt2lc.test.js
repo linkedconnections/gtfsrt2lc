@@ -13,24 +13,28 @@ const mock_uris = {
 
 var routes = null;
 var trips = null;
+var stops = null;
 
 test('Extract indexes (routes, trips) from sample static GTFS data (test/data/static_rawdata.zip)', async () => {
     let gti = new GtfsIndex(static_path);
     expect.assertions(4);
-    const [r, t] = await gti.getIndexes();
+    const [r, t, s] = await gti.getIndexes();
 
     routes = r;
     trips = t;
+    stops = s;
 
     expect(r).toBeDefined();
     expect(t).toBeDefined();
+    expect(s).toBeDefined();
 
     expect(r.size).toBeGreaterThan(0);
     expect(t.size).toBeGreaterThan(0);
+    expect(s.size).toBeGreaterThan(0);
 });
 
 test('Check all parsed connections are consistent regarding departure and arrival times', async () => {
-    let grt = new Gtfsrt2lc(rt_path, routes, trips, mock_uris);
+    let grt = new Gtfsrt2lc(rt_path, routes, trips, stops, mock_uris);
     let connStream = await grt.parse('json');
     let flag = true;
 
@@ -61,7 +65,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in json format', async () => {
-    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, mock_uris);
+    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, stops, mock_uris);
     let rt_stream = await grt2json.parse('json');
     let buffer = [];
 
@@ -87,7 +91,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in js
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in jsonld format', async () => {
-    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, mock_uris);
+    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, stops, mock_uris);
     let rt_stream = await grt2json.parse('jsonld');
     let buffer = [];
 
@@ -113,7 +117,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in js
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in csv format', async () => {
-    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, mock_uris);
+    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, stops, mock_uris);
     let rt_stream = await grt2json.parse('csv');
     let buffer = [];
 
@@ -139,7 +143,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in cs
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in turtle format', async () => {
-    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, mock_uris);
+    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, stops, mock_uris);
     let rt_stream = await grt2json.parse('turtle');
     let buffer = [];
 
@@ -165,7 +169,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in tu
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in ntriples format', async () => {
-    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, mock_uris);
+    let grt2json = new Gtfsrt2lc(rt_path, routes, trips, stops, mock_uris);
     let rt_stream = await grt2json.parse('ntriples');
     let buffer = [];
 
