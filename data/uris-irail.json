@@ -1,0 +1,6 @@
+{
+    "stop": "http://irail.be/stations/NMBS/00{stop_id}",
+    "route": "http://irail.be/routes/{routes.route_short_name}{trips.trip_short_name}",
+    "trip": "http://irail.be/trips/{routes.route_short_name}{trips.trip_short_name}/{connection.departureTime(YYYYMMDD)}",
+    "connection": "http://irail.be/connections/{connection.departureStop}/{connection.departureTime(YYYYMMDD)}/{routes.route_short_name}{trips.trip_short_name}"
+}
