@@ -17,7 +17,7 @@ var stops = null;
 
 test('Extract indexes (routes, trips) from sample static GTFS data (test/data/static_rawdata.zip)', async () => {
     let gti = new GtfsIndex(static_path);
-    expect.assertions(4);
+    expect.assertions(6);
     const [r, t, s] = await gti.getIndexes();
 
     routes = r;
