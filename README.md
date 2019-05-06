@@ -55,7 +55,7 @@ The parameters used to build the URIs are given following an object-like notatio
 - **trip:** In the case of the trip we add the associated `connection.departureTime(YYYYMMDD)` on top of the route URI. The `connection` entity will be explained next.
 - **connection:** Finally for a connection identifier we resort to its departure stop with `connection.departureStop`, the `connection.departureTime(YYYYMMDD)`, the `routes.route_short_name` and the `trips.trip_short_name`. In this case we reference a special entity we called `connection` which contains the related basic data that can be extracted from a `GTFS-RT` update for every Linked Connection. A `connection` entity contains these parameters that can be used on the URIs definition: `connection.departureStop`, `connection.arrivalStop`, `connection.departureTime` and `connection.arrivalTime`. As both `departureTime` and `arrivalTime` are date objects, the expected format can be defined using brackets.
 
-How you define your URI strategy to obtain stable identifiers will depend on the actual data that exists on both the `GTFS` datasource and the `GTFS-RT` updates, and how these data is mantained.
+How you define your URI strategy to obtain stable identifiers will depend on the actual data that exists on both the `GTFS` datasource and the `GTFS-RT` updates, and how these data are maintained.
 
 ### The outcome
 Here is how an extracted Linked Connection looks in JSON-LD format:
@@ -124,10 +124,10 @@ You can use it in your code as follows:
 const { GtfsIndex, Gtfsrt2LC} = require('gtfsrt2lc');
 
 // Get static GTFS indexes
-const indexer = new GtfsIndex('path or URL to your GTFS datasource');
+const indexer = new GtfsIndex(<path or URL to your GTFS datasource>);
 indexer.getIndexes().then(async ([routes, trips]) => {
     // Proceed to parse GTFS-RT
-    let parser = new Gtfsrt2LC('path or URL to your GTFS-RT update', routes, trips, 'path/to/your/URI_template.json');
+    let parser = new Gtfsrt2LC(<path or URL to your GTFS-RT update>, routes, trips, 'path/to/your/URI_template.json');
     // Choose the serialization format among json, jsonld, csv, turtle and ntriples
     let rtlc = await parser.parse('jsonld');
     // Output data
