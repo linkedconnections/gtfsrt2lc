@@ -27,9 +27,9 @@ GTFS-RT to linked connections converter use --help to discover how to use it
 
     -r --real-time <realTime>      URL/path to gtfs-rt feed
     -s --static <static>           URL/path to static gtfs feed
-    -u --uris-template <template>  Templates for Linked Connection URIs following the RFC 6570 specification
+    -u --uris-template <template>  JSON object/file with the required URI templates following the RFC 6570 specification
     -f --format <format>           Output serialization format. Choose from json, jsonld, turtle, ntriples and csv. (Default: json)
-    -h, --help                     output usage information
+    -h, --help                     Output usage information
 ```
 
 Now, to run the tool with the example data, first download the [datasets](https://github.com/linkedconnections/gtfsrt2lc/tree/master/test/data), provide the URI templates (see an example [here](https://github.com/linkedconnections/gtfsrt2lc/blob/master/uris_template_example.json)) and then execute the following command:
@@ -48,7 +48,7 @@ The URI strategy to be used during the conversion process is given following the
 
 To define the URI of the different entities that are referenced in a Linked Connection, we use a single JSON file that contains the respective URI templates. We provide an example of such file [here](https://github.com/linkedconnections/gtfsrt2lc/blob/master/uris_template_example.json) which looks like this:
 
-```json
+```js
 {
     "stop": "http://example.org/{agency}/stations/{stops.stop_id}",
     "route": "http://example.org/routes/{routeFrom}/{routeTo}/{routes.route_id}",
@@ -173,9 +173,9 @@ const { GtfsIndex, Gtfsrt2LC} = require('gtfsrt2lc');
 
 // Get static GTFS indexes
 const indexer = new GtfsIndex(<path or URL to your GTFS datasource>);
-indexer.getIndexes().then(async ([routes, trips]) => {
+indexer.getIndexes().then(async ([routes, trips, stops, stop_times]) => {
     // Proceed to parse GTFS-RT
-    let parser = new Gtfsrt2LC(<path or URL to your GTFS-RT update>, routes, trips, 'path/to/your/URI_template.json');
+    let parser = new Gtfsrt2LC(<path or URL to your GTFS-RT update>, routes, trips, stops, stop_times, 'path/to/your/URI_template.json');
     // Choose the serialization format among json, jsonld, csv, turtle and ntriples
     let rtlc = await parser.parse('jsonld');
     // Output data
