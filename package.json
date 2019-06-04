@@ -28,7 +28,6 @@
     "gtfs-realtime-bindings": "0.0.5",
     "jsonld-stream": "^1.0.4",
     "n3": "^1.1.1",
-    "through2": "^2.0.5",
     "unzipper": "^0.8.14",
     "uri-templates": "^0.2.0",
     "zlib": "^1.0.5"
