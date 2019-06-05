@@ -43,9 +43,9 @@ var format = program.format || 'json';
 
 // Get static GTFS indexes
 var gtfs = new GtfsIndex(program.static);
-gtfs.getIndexes().then(async ([routes, trips]) => {
+gtfs.getIndexes().then(async ([routes, trips, stops, stop_times]) => {
     // Proceed to parse GTFS-RT
-    let gtfsrt2lc = new Gtfsrt2LC(program.realTime, routes, trips, template);
+    let gtfsrt2lc = new Gtfsrt2LC(program.realTime, routes, trips, stops, stop_times, template);
     let rtlc = await gtfsrt2lc.parse(format, false);
     // Output data
     rtlc.pipe(process.stdout);
