@@ -209,3 +209,32 @@ test('Stop gaps introduced by the GTFS-RT updates wrt the static schedule are fi
     expect(testConnections['88____:007::8841608:8841004:4:850:20191214'].length).toBe(3);
     expect(testConnections['88____:007::8819406:8881166:19:834:20190316'].length).toBe(17);
 });
+
+test('Check cancelled vehicle detection and related Connections (use test/data/cancellation_realtime_rawdata)', async () => {
+    let gti = new GtfsIndex('./test/data/cancellation_static_rawdata.zip');
+    const [r, t, s, st] = await gti.getIndexes();
+    let grt = new Gtfsrt2lc('./test/data/cancellation_realtime_rawdata', r, t, s, st, mock_uris);
+    let connStream = await grt.parse('json', true);
+    let cancelledConnections = [];
+
+    expect.assertions(2);
+
+    connStream.on('data', conn => {
+        if(conn['@type'] == 'CancelledConnection') {
+            cancelledConnections.push(conn);
+        }
+    });
+    
+    let stream_end = new Promise((resolve, reject) => {
+        connStream.on('end', () => {
+            resolve(true);
+        });
+        connStream.on('error', () => {
+            resolve(false);
+        });
+    });
+
+    let finished = await stream_end;
+    expect(finished).toBeTruthy();
+    expect(cancelledConnections.length).toBe(9);
+});
