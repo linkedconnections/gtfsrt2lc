@@ -4,8 +4,8 @@
     "trip": "http://example.org/trips/{tripLabel}/{tripStartTime}",
     "connection": "http://example.org/connections/{tripLabel}/00{connection.departureStop}/{tripStartTime}/",
     "resolve": {
-        "routeFrom": "routes.route_long_name.replace(/\\s/gi, '').split('--')[0];",
-        "routeTo": "routes.route_long_name.replace(/\\s/gi, '').split('--')[1];",
+        "routeFrom": "routes.route_long_name.replace(/\\s/gi, '').split('–')[0];",
+        "routeTo": "routes.route_long_name.replace(/\\s/gi, '').split('–')[1];",
         "tripLabel": "routes.route_short_name + routes.route_id;",
         "tripStartTime": "format(trips.startTime, 'YYYYMMDDTHHmm');"
     }
