@@ -1,6 +1,6 @@
 # gtfsrt2lc
 
-[![Build Status](https://travis-ci.org/linkedconnections/gtfsrt2lc.svg?branch=master)](https://travis-ci.org/linkedconnections/gtfsrt2lc) [![npm](https://img.shields.io/npm/v/gtfsrt2lc.svg?style=popout)](https://npmjs.com/package/gtfsrt2lc) [![Greenkeeper badge](https://badges.greenkeeper.io/linkedconnections/gtfsrt2lc.svg)](https://greenkeeper.io/)
+[![Build Status](https://travis-ci.org/linkedconnections/gtfsrt2lc.svg?branch=master)](https://travis-ci.org/linkedconnections/gtfsrt2lc) [![npm](https://img.shields.io/npm/v/gtfsrt2lc.svg?style=popout)](https://npmjs.com/package/gtfsrt2lc) [![Greenkeeper badge](https://badges.greenkeeper.io/linkedconnections/gtfsrt2lc.svg)](https://greenkeeper.io/) [![Coverage Status](https://coveralls.io/repos/github/linkedconnections/gtfsrt2lc/badge.svg?branch=development)](https://coveralls.io/github/linkedconnections/gtfsrt2lc?branch=development)
 
 Converts [GTFS-RT](https://developers.google.com/transit/gtfs-realtime/) updates to [Linked Connections](http://linkedconnections.org/) following a predefined URI strategy that is provided using the [RFC 6570](https://tools.ietf.org/html/rfc6570) specification and any variable present in a (also given) related [GTFS](https://developers.google.com/tansit/gtfs/reference/) data source.
 
