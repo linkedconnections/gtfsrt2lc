@@ -20,6 +20,10 @@ var stops = null;
 var stop_times = null;
 var connections = [];
 
+
+// Make sure travis-ci does not crash due to timeouts
+jest.setTimeout(20000);
+
 test('Extract indexes (routes, trips, stops and stop_times) from sample static GTFS data (test/data/static_rawdata.zip)', async () => {
     let gti = new GtfsIndex(static_path);
     expect.assertions(8);

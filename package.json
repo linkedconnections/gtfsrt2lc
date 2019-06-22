@@ -22,13 +22,13 @@
   "dependencies": {
     "commander": "^2.20.0",
     "date-fns": "^1.30.1",
-    "del": "^3.0.0",
-    "fast-csv": "^2.5.0",
+    "del": "^4.1.1",
+    "fast-csv": "^3.0.1",
     "follow-redirects": "^1.7.0",
     "gtfs-realtime-bindings": "0.0.5",
     "jsonld-stream": "^1.0.4",
     "n3": "^1.1.1",
-    "unzipper": "^0.8.14",
+    "unzipper": "^0.10.1",
     "uri-templates": "^0.2.0",
     "zlib": "^1.0.5"
   },
