@@ -7,7 +7,8 @@
     "gtfsrt2lc": "./bin/gtfsrt2lc.js"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
     "zlib": "^1.0.5"
   },
   "devDependencies": {
+    "coveralls": "^3.0.4",
     "jest": "^24.8.0"
   }
 }

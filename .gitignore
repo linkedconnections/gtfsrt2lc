@@ -1,2 +1,4 @@
 node_modules/
 uris_template.json
+.coveralls.yml
+coverage
