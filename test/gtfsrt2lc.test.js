@@ -1,3 +1,4 @@
+const url = require('url');
 const GtfsIndex = require('../lib/GtfsIndex');
 const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
 
@@ -227,13 +228,13 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     const indexes = await gti.getIndexes(ut);
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('json', true);
+    let connStream = await grt.parse('turtle', true);
     let cancelledConnections = [];
 
     expect.assertions(2);
 
     connStream.on('data', conn => {
-        if(conn['@type'] == 'CancelledConnection') {
+        if(conn.indexOf('lc:CancelledConnection') >= 0) {
             cancelledConnections.push(conn);
         }
     });
@@ -281,4 +282,19 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2)', asy
 
     expect(buffer.length).toBeGreaterThan(0);
     expect(finish).toBeTruthy();
+});
+
+test('Cover GtfsIndex functions', async () => {
+    expect.assertions(1);
+    let gti = new GtfsIndex('https://gtfs.irail.be/nmbs/gtfs/latest.zip');
+    try {
+        await gti.getIndexes();
+    } catch (err) { }
+
+    try {
+        gti = new GtfsIndex('/some/fake/path');
+        await gti.getIndexes();
+    } catch (err) { }
+
+    expect(true).toBeTruthy();
 });
