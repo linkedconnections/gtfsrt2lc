@@ -25,6 +25,7 @@ GTFS-RT to linked connections converter use --help to discover how to use it
 
     -r --real-time <realTime>      URL/path to gtfs-rt feed
     -s --static <static>           URL/path to static gtfs feed
+    -H --headers <headers>         Extra HTTP headers for requesting the gtfs files
     -u --uris-template <template>  JSON object/file with the required URI templates following the RFC 6570 specification
     -f --format <format>           Output serialization format. Choose from json, jsonld, turtle, ntriples and csv. (Default: json)
     -h, --help                     Output usage information
@@ -35,6 +36,11 @@ Now, to run the tool with the example data, first download the [datasets](https:
 ```bash
 gtfsrt2lc -r /path/to/realtime_rawdata -s /path/to/static_rawdata.zip -u /path/to/uris_template.json
 ```
+
+Sometimes, some APIs require you to provide an API key through a custom HTTP header for accessing the data. If that is the case you can do that using the `-H` option and giving a JSON object containing all the required HTTP headers and their values. For example:
+```bash
+gtfsrtlc -r https://transport.operator/gtfs-rt/api -s https://transport.operator/gtfs/api -u /path/to/uris_template.json -H "{ \"Custom-Header\": \"secret_api_key\" }"
+``` 
 
 ## How does it work
 
