@@ -6,6 +6,6 @@
     "resolve": {
         "routeLabel": "routes.route_long_name.replace(/\\s/gi, '');",
         "tripLabel": "routes.route_short_name + routes.route_id;",
-        "tripStartTime": "format(trips.startTime, 'yyyyMMddTHHmm');"
+        "tripStartTime": "format(trips.startTime, \"yyyyMMdd'T'HHmm\");"
     }
 }

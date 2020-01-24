@@ -69,7 +69,7 @@ To define the URI of the different entities that are referenced in a Linked Conn
         "routeFrom": "routes.route_long_name.replace(/\\s/gi, '').split('--')[0];",
         "routeTo": "routes.route_long_name.replace(/\\s/gi, '').split('--')[1];",
         "routeLabel": "routes.route_short_name + routes.route_id;",
-        "tripStartTime": "format(trips.startTime, 'YYYYMMDDTHHmm');"
+        "tripStartTime": "format(trips.startTime, \"YYYYMMDD'T'HHmm\"");"
     }
 }
 ```
@@ -106,7 +106,7 @@ Also, depending of your data source, sometimes you would like to have very speci
 
 * If we want to use the `agency_id` defined in `routes.txt`, but only the first part before the `/` (see the example above), then inside `resolve` we can define a variable as `"agency": "routes.agency_id.substring(0, 4);"` and reuse `{agency}` in the URI definitions.
 
-* For formating dates we expose the `format` function from the [`date-fns`](https://date-fns.org/v1.9.0/docs/format) library. We can create specific date formats inside the `resolve` object to be reused in our URIs. For instance `"tripStartTime": "format(trips.startTime, 'YYYYMMDDTHHmm');"`.
+* For formating dates we expose the `format` function from the [`date-fns`](https://date-fns.org/v1.9.0/docs/format) library. We can create specific date formats inside the `resolve` object to be reused in our URIs. For instance `"tripStartTime": "format(trips.startTime, \"YYYYMMDD'T'HHmm\");"`.
 
 ### The outcome
 
