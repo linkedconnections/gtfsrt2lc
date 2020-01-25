@@ -7,8 +7,8 @@ const rt_path = './test/data/realtime_rawdata';
 const mock_uris = {
     "stop": "http://irail.be/stations/NMBS/00{stops.stop_id}",
     "route": "http://irail.be/vehicle/{routes.route_id}",
-    "trip": "http://irail.be/vehicle/{trips.trip_id}/{trips.startTime(yyyyMMddTHHmm)}",
-    "connection": "http://irail.be/connections/{headsign}/{connection.departureStop}/{trips.startTime(yyyyMMddTHHmm)}",
+    "trip": "http://irail.be/vehicle/{trips.trip_id}/{trips.startTime(yyyyMMdd'T'HHmm)}",
+    "connection": "http://irail.be/connections/{headsign}/{connection.departureStop}/{trips.startTime(yyyyMMdd'T'HHmm)}",
     "resolve": {
         "headsign": "trips.trip_headsign.replace(/\\s/, '');"
     }
