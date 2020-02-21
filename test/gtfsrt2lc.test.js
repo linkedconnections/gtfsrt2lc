@@ -17,11 +17,11 @@ const mock_uris = {
 var updatedTrips = null;
 var memIndexes = null
 var grepIndexes = null
-var keyvIndexes = null
+var levelIndexes = null
 var grt = null;
 var memConnections = [];
 var grepConnections = [];
-var keyvConnections = [];
+var levelConnections = [];
 
 
 // Make sure travis-ci does not crash due to timeouts
@@ -29,16 +29,16 @@ jest.setTimeout(180000);
 
 test('Obtain the list of trips to be updated from GTFS-RT data', async () => {
     expect.assertions(2);
-    grt = new Gtfsrt2lc(rt_path, mock_uris);
+    grt = new Gtfsrt2lc({ path: rt_path, uris: mock_uris });
     updatedTrips = await grt.getUpdatedTrips();
     expect(updatedTrips).toBeDefined();
     expect(updatedTrips.length).toBeGreaterThan(0);
 });
 
 test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using MemStore', async () => {
-    let gti = new GtfsIndex(static_path);
+    let gti = new GtfsIndex({ path: static_path });
     expect.assertions(8);
-    memIndexes = await gti.getIndexes({}, 'MemStore');
+    memIndexes = await gti.getIndexes({ store: 'MemStore' });
 
     let memRoutes = memIndexes.routes;
     let memTrips = memIndexes.trips;
@@ -57,9 +57,9 @@ test('Extract all indexes from sample static GTFS data (test/data/static_rawdata
 });
 
 test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using MemStore and grep', async () => {
-    let gti = new GtfsIndex(static_path);
+    let gti = new GtfsIndex({ path: static_path });
     expect.assertions(8);
-    grepIndexes = await gti.getIndexes({}, 'MemStore', updatedTrips);
+    grepIndexes = await gti.getIndexes({ store: 'MemStore', trips: updatedTrips });
 
     let grepRoutes = grepIndexes.routes;
     let grepTrips = grepIndexes.trips;
@@ -77,20 +77,20 @@ test('Extract all indexes from sample static GTFS data (test/data/static_rawdata
     expect(grepStop_times.size).toBeGreaterThan(0);
 });
 
-test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using KeyvStore', async () => {
-    let gti = new GtfsIndex(static_path);
+test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using LevelStore', async () => {
+    let gti = new GtfsIndex({ path: static_path });
     expect.assertions(4);
-    keyvIndexes = await gti.getIndexes({}, 'KeyvStore');
+    levelIndexes = await gti.getIndexes({ store: 'LevelStore' });
 
-    let keyvRoutes = keyvIndexes.routes;
-    let keyvTrips = keyvIndexes.trips;
-    let keyvStops = keyvIndexes.stops;
-    let keyvStop_times = keyvIndexes.stop_times;
+    let levelRoutes = levelIndexes.routes;
+    let levelTrips = levelIndexes.trips;
+    let levelStops = levelIndexes.stops;
+    let levelStop_times = levelIndexes.stop_times;
 
-    expect(keyvRoutes).toBeDefined();
-    expect(keyvTrips).toBeDefined();
-    expect(keyvStops).toBeDefined();
-    expect(keyvStop_times).toBeDefined();
+    expect(levelRoutes).toBeDefined();
+    expect(levelTrips).toBeDefined();
+    expect(levelStops).toBeDefined();
+    expect(levelStop_times).toBeDefined();
 });
 
 test('Check all parsed connections are consistent regarding departure and arrival times using MemStore', async () => {
@@ -159,8 +159,8 @@ test('Check all parsed connections are consistent regarding departure and arriva
     expect(finish).toBeTruthy();
 });
 
-test('Check all parsed connections are consistent regarding departure and arrival times using KeyvStore', async () => {
-    grt.setIndexes(keyvIndexes);
+test('Check all parsed connections are consistent regarding departure and arrival times using LevelStore', async () => {
+    grt.setIndexes(levelIndexes);
     let connStream = await grt.parse('json');
     let flag = true;
     expect.assertions(2);
@@ -174,7 +174,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
         }
 
         // Add JSON connections to global array to avoid parsing them on every test where they are needed
-        keyvConnections.push(conn);
+        levelConnections.push(conn);
     });
 
     let stream_end = new Promise(resolve => {
@@ -190,9 +190,16 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
     expect(flag).toBeTruthy();
     expect(finish).toBeTruthy();
+
+    // Close Level dbs so they can be opened in further tests
+    await levelIndexes.routes.close();
+    await levelIndexes.trips.close();
+    await levelIndexes.stops.close();
+    await levelIndexes.stop_times.close();
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in jsonld format', async () => {
+    grt.setIndexes(memIndexes);
     let rt_stream = await grt.parse('jsonld');
     let buffer = [];
 
@@ -223,7 +230,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in cs
 
     expect.assertions(2);
 
-    rt_stream.on('data', async data => {
+    rt_stream.on('data', data => {
         buffer.push(data);
     });
 
@@ -354,7 +361,7 @@ test('Stop gaps introduced by the GTFS-RT updates wrt the static schedule are fi
     expect(testConnections['88____:007::8819406:8881166:19:834:20190316'].length).toBe(17);
 });
 
-test('Stop gaps introduced by the GTFS-RT updates wrt the static schedule are filled correctly with KeyvStore', () => {
+test('Stop gaps introduced by the GTFS-RT updates wrt the static schedule are filled correctly with LevelStore', () => {
     expect.assertions(3);
     // Trip 88____:007::8893120:8821006:13:923:20191214:1 => First 3 stop updates are matched in schedule (13 in total)
     // Trip 88____:007::8841608:8841004:4:850:20191214 => Second and third stop updates are matched in schedule (4 in total)
@@ -366,17 +373,17 @@ test('Stop gaps introduced by the GTFS-RT updates wrt the static schedule are fi
         '88____:007::8819406:8881166:19:834:20190316': []
     };
 
-    for (let i in keyvConnections) {
-        if (keyvConnections[i].indexOf(encodeURIComponent('88____:007::8893120:8821006:13:923:20191214:1')) >= 0) {
-            testConnections['88____:007::8893120:8821006:13:923:20191214:1'].push(JSON.parse(keyvConnections[i]));
+    for (let i in levelConnections) {
+        if (levelConnections[i].indexOf(encodeURIComponent('88____:007::8893120:8821006:13:923:20191214:1')) >= 0) {
+            testConnections['88____:007::8893120:8821006:13:923:20191214:1'].push(JSON.parse(levelConnections[i]));
         }
 
-        if (keyvConnections[i].indexOf(encodeURIComponent('88____:007::8841608:8841004:4:850:20191214')) >= 0) {
-            testConnections['88____:007::8841608:8841004:4:850:20191214'].push(JSON.parse(keyvConnections[i]));
+        if (levelConnections[i].indexOf(encodeURIComponent('88____:007::8841608:8841004:4:850:20191214')) >= 0) {
+            testConnections['88____:007::8841608:8841004:4:850:20191214'].push(JSON.parse(levelConnections[i]));
         }
 
-        if (keyvConnections[i].indexOf(encodeURIComponent('88____:007::8819406:8881166:19:834:20190316')) >= 0) {
-            testConnections['88____:007::8819406:8881166:19:834:20190316'].push(JSON.parse(keyvConnections[i]));
+        if (levelConnections[i].indexOf(encodeURIComponent('88____:007::8819406:8881166:19:834:20190316')) >= 0) {
+            testConnections['88____:007::8819406:8881166:19:834:20190316'].push(JSON.parse(levelConnections[i]));
         }
     }
 
@@ -386,9 +393,9 @@ test('Stop gaps introduced by the GTFS-RT updates wrt the static schedule are fi
 });
 
 test('Check cancelled vehicle detection and related Connections (use test/data/cancellation_realtime_rawdata) with MemStore', async () => {
-    grt = new Gtfsrt2lc('./test/data/cancellation_realtime_rawdata', mock_uris);
-    let gti = new GtfsIndex('./test/data/cancellation_static_rawdata.zip');
-    const indexes = await gti.getIndexes({}, 'MemStore');
+    grt = new Gtfsrt2lc({ path: './test/data/cancellation_realtime_rawdata', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/cancellation_static_rawdata.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
 
     let connStream = await grt.parse('turtle', true);
@@ -397,11 +404,11 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     expect.assertions(2);
 
     connStream.on('data', conn => {
-        if(conn.indexOf('lc:CancelledConnection') >= 0) {
+        if (conn.indexOf('lc:CancelledConnection') >= 0) {
             cancelledConnections.push(conn);
         }
     });
-    
+
     let stream_end = new Promise(resolve => {
         connStream.on('end', () => {
             resolve(true);
@@ -417,10 +424,10 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
 });
 
 test('Check cancelled vehicle detection and related Connections (use test/data/cancellation_realtime_rawdata) with MemStore and grep', async () => {
-    grt = new Gtfsrt2lc('./test/data/cancellation_realtime_rawdata', mock_uris);
+    grt = new Gtfsrt2lc({ path: './test/data/cancellation_realtime_rawdata', uris: mock_uris });
     let ut = await grt.getUpdatedTrips();
-    let gti = new GtfsIndex('./test/data/cancellation_static_rawdata.zip');
-    const indexes = await gti.getIndexes({}, 'MemStore', ut);
+    let gti = new GtfsIndex({ path: './test/data/cancellation_static_rawdata.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore', trips: ut });
     grt.setIndexes(indexes);
 
     let connStream = await grt.parse('turtle', true);
@@ -429,11 +436,11 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     expect.assertions(2);
 
     connStream.on('data', conn => {
-        if(conn.indexOf('lc:CancelledConnection') >= 0) {
+        if (conn.indexOf('lc:CancelledConnection') >= 0) {
             cancelledConnections.push(conn);
         }
     });
-    
+
     let stream_end = new Promise(resolve => {
         connStream.on('end', () => {
             resolve(true);
@@ -448,10 +455,10 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     expect(cancelledConnections.length).toBe(9);
 });
 
-test('Check cancelled vehicle detection and related Connections (use test/data/cancellation_realtime_rawdata) with KeyvStore', async () => {
-    grt = new Gtfsrt2lc('./test/data/cancellation_realtime_rawdata', mock_uris);
-    let gti = new GtfsIndex('./test/data/cancellation_static_rawdata.zip');
-    const indexes = await gti.getIndexes({}, 'KeyvStore');
+test('Check cancelled vehicle detection and related Connections (use test/data/cancellation_realtime_rawdata) with LevelStore', async () => {
+    grt = new Gtfsrt2lc({ path: './test/data/cancellation_realtime_rawdata', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/cancellation_static_rawdata.zip' });
+    let indexes = await gti.getIndexes({ store: 'LevelStore' });
     grt.setIndexes(indexes);
 
     let connStream = await grt.parse('turtle', true);
@@ -460,11 +467,11 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     expect.assertions(2);
 
     connStream.on('data', conn => {
-        if(conn.indexOf('lc:CancelledConnection') >= 0) {
+        if (conn.indexOf('lc:CancelledConnection') >= 0) {
             cancelledConnections.push(conn);
         }
     });
-    
+
     let stream_end = new Promise(resolve => {
         connStream.on('end', () => {
             resolve(true);
@@ -477,12 +484,17 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     let finished = await stream_end;
     expect(finished).toBeTruthy();
     expect(cancelledConnections.length).toBe(9);
+
+    await indexes.routes.close();
+    await indexes.trips.close();
+    await indexes.stops.close();
+    await indexes.stop_times.close();
 });
 
 test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with MemStore', async () => {
-    grt = new Gtfsrt2lc('./test/data/realtime_rawdata_v2', mock_uris);
-    let gti = new GtfsIndex('./test/data/static_rawdata_v2.zip');
-    const indexes = await gti.getIndexes({}, 'MemStore');
+    grt = new Gtfsrt2lc({ path: './test/data/realtime_rawdata_v2', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/static_rawdata_v2.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
 
     let connStream = await grt.parse('json', true);
@@ -510,10 +522,10 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
 });
 
 test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with MemStore and grep', async () => {
-    grt = new Gtfsrt2lc('./test/data/realtime_rawdata_v2', mock_uris);
+    grt = new Gtfsrt2lc({ path: './test/data/realtime_rawdata_v2', uris: mock_uris });
     let ut = await grt.getUpdatedTrips();
-    let gti = new GtfsIndex('./test/data/static_rawdata_v2.zip');
-    const indexes = await gti.getIndexes({}, 'MemStore', ut);
+    let gti = new GtfsIndex({ path: './test/data/static_rawdata_v2.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore', trips: ut });
     grt.setIndexes(indexes);
 
     let connStream = await grt.parse('json', true);
@@ -540,10 +552,10 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
     expect(finish).toBeTruthy();
 });
 
-test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with KeyvStore', async () => {
-    grt = new Gtfsrt2lc('./test/data/realtime_rawdata_v2', mock_uris);
-    let gti = new GtfsIndex('./test/data/static_rawdata_v2.zip');
-    const indexes = await gti.getIndexes({}, 'KeyvStore');
+test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with LevelStore', async () => {
+    grt = new Gtfsrt2lc({ path: './test/data/realtime_rawdata_v2', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/static_rawdata_v2.zip' });
+    const indexes = await gti.getIndexes({ store: 'LevelStore' });
     grt.setIndexes(indexes);
 
     let connStream = await grt.parse('json', true);
@@ -571,8 +583,7 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
 });
 
 test('Cover GtfsIndex functions', async () => {
-    expect.assertions(1);
-    let gti = new GtfsIndex('https://gtfs.irail.be/nmbs/gtfs/latest.zip');
+    let gti = new GtfsIndex({ path: 'https://gtfs.irail.be/nmbs/gtfs/latest.zip' });
     try {
         await gti.getIndexes();
     } catch (err) { }
@@ -581,6 +592,4 @@ test('Cover GtfsIndex functions', async () => {
         gti = new GtfsIndex('/some/fake/path');
         await gti.getIndexes();
     } catch (err) { }
-
-    expect(true).toBeTruthy();
 });
