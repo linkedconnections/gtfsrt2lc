@@ -10,9 +10,9 @@ console.error("GTFS-RT to linked connections converter use --help to discover ho
 program
     .option('-r --real-time <realTime>', 'URL/path to gtfs-rt feed')
     .option('-s --static <static>', 'URL/path to static gtfs feed')
-    .option('-S --store <store>', 'Store type: KeyvStore (uses your harddisk to avoid that you run out of RAM) or MemStore (default)')
+    .option('-S --store <store>', 'Store type: LevelStore (uses your harddisk to avoid that you run out of RAM) or MemStore (default)')
     .option('-g --grep', 'Use grep to index only the trips present in the GTFS-RT. Useful for dealing with big GTFS feeds in memory.')
-    .option('-H --headers <headers>', 'Extra HTTP headers for requesting the gtfs files. E.g., { apiKey: "someApiKey" }')
+    .option('-H --headers <headers>', 'Extra HTTP headers for requesting the gtfs files. E.g., {\\"api-Key\\":\\"someApiKey\\"}')
     .option('-u --uris-template <template>', 'Templates for Linked Connection URIs following the RFC 6570 specification')
     .option('-f --format <format>', 'Output serialization format. Choose from json, jsonld, turtle, ntriples and csv. (Default: json)')
     .parse(process.argv);
@@ -58,21 +58,21 @@ if (program.headers) {
 }
 
 var t0 = new Date();
-var gtfsrt2lc = new Gtfsrt2LC(program.realTime, template);
-var gtfsIndexer = new GtfsIndex(program.static);
-processUpdate(headers, program.store, program.grep);
+var gtfsrt2lc = new Gtfsrt2LC({ path: program.realTime, uris: template, headers: headers });
+var gtfsIndexer = new GtfsIndex({ path: program.static, headers: headers });
+processUpdate(program.store, program.grep);
 
-async function processUpdate(headers, store, isGrep) {
+async function processUpdate(store, grep) {
     try {
         let trips = null;
 
-        if (isGrep) {
+        if (grep) {
             // Get list of updated trips
-            trips = await gtfsrt2lc.getUpdatedTrips(headers);
+            trips = await gtfsrt2lc.getUpdatedTrips();
         }
         // Get GTFS indexes (stops.txt, routes.txt, trips.txt, stop_times.txt)
-        let indexes = await gtfsIndexer.getIndexes(headers, store, trips);
-        console.error('GTFS indexing process took ' + (new Date().getTime() - t0.getTime()) + ' ms');
+        let indexes = await gtfsIndexer.getIndexes({ store: store, trips: trips });
+        console.error(`GTFS indexing process took ${new Date().getTime() - t0.getTime()} ms`);
         t0 = new Date();
         gtfsrt2lc.setIndexes(indexes);
         // Create stream of updated Linked Connections
@@ -80,7 +80,7 @@ async function processUpdate(headers, store, isGrep) {
         // Output data
         rtlc.pipe(process.stdout);
         rtlc.on('end', () => {
-            console.error('Linked Connections conversion process took ' + (new Date().getTime() - t0.getTime()) + ' ms');
+            console.error(`Linked Connections conversion process took ${new Date().getTime() - t0.getTime()} ms`);
             process.exit();
         });
     } catch (err) {
