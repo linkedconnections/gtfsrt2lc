@@ -95,7 +95,7 @@ test('Extract all indexes from sample static GTFS data (test/data/static_rawdata
 
 test('Check all parsed connections are consistent regarding departure and arrival times using MemStore', async () => {
     grt.setIndexes(memIndexes);
-    let connStream = await grt.parse('json');
+    let connStream = await grt.parse({ format: 'json' });
     let flag = true;
     expect.assertions(2);
 
@@ -128,7 +128,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
 test('Check all parsed connections are consistent regarding departure and arrival times using MemStore with grep', async () => {
     grt.setIndexes(grepIndexes);
-    let connStream = await grt.parse('json');
+    let connStream = await grt.parse({ format: 'json' });
     let flag = true;
     expect.assertions(2);
 
@@ -161,7 +161,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
 test('Check all parsed connections are consistent regarding departure and arrival times using LevelStore', async () => {
     grt.setIndexes(levelIndexes);
-    let connStream = await grt.parse('json');
+    let connStream = await grt.parse({ format: 'json' });
     let flag = true;
     expect.assertions(2);
 
@@ -200,7 +200,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in jsonld format', async () => {
     grt.setIndexes(memIndexes);
-    let rt_stream = await grt.parse('jsonld');
+    let rt_stream = await grt.parse({ format: 'json' });
     let buffer = [];
 
     expect.assertions(2);
@@ -225,7 +225,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in js
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in csv format', async () => {
-    let rt_stream = await grt.parse('csv');
+    let rt_stream = await grt.parse({ format: 'csv' });
     let buffer = [];
 
     expect.assertions(2);
@@ -250,7 +250,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in cs
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in turtle format', async () => {
-    let rt_stream = await grt.parse('turtle');
+    let rt_stream = await grt.parse({ format: 'turtle' });
     let buffer = [];
 
     expect.assertions(2);
@@ -275,7 +275,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in tu
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in ntriples format', async () => {
-    let rt_stream = await grt.parse('ntriples');
+    let rt_stream = await grt.parse({ format: 'ntriples' });
     let buffer = [];
 
     expect.assertions(2);
@@ -398,7 +398,7 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('turtle', true);
+    let connStream = await grt.parse({ format: 'turtle', objectMode: true });
     let cancelledConnections = [];
 
     expect.assertions(2);
@@ -430,7 +430,7 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     const indexes = await gti.getIndexes({ store: 'MemStore', trips: ut });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('turtle', true);
+    let connStream = await grt.parse({ format: 'turtle', objectMode: true });
     let cancelledConnections = [];
 
     expect.assertions(2);
@@ -461,7 +461,7 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     let indexes = await gti.getIndexes({ store: 'LevelStore' });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('turtle', true);
+    let connStream = await grt.parse({ format: 'turtle', objectMode: true });
     let cancelledConnections = [];
 
     expect.assertions(2);
@@ -497,7 +497,7 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
     const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('json', true);
+    let connStream = await grt.parse({ format: 'json', objectMode: true });
     let buffer = [];
 
     expect.assertions(2);
@@ -528,7 +528,7 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
     const indexes = await gti.getIndexes({ store: 'MemStore', trips: ut });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('json', true);
+    let connStream = await grt.parse({ format: 'json', objectMode: true });
     let buffer = [];
 
     expect.assertions(2);
@@ -558,7 +558,7 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
     const indexes = await gti.getIndexes({ store: 'LevelStore' });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('json', true);
+    let connStream = await grt.parse({ format: 'json', objectMode: true });
     let buffer = [];
 
     expect.assertions(2);

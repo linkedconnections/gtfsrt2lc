@@ -76,7 +76,7 @@ async function processUpdate(store, grep) {
         t0 = new Date();
         gtfsrt2lc.setIndexes(indexes);
         // Create stream of updated Linked Connections
-        let rtlc = await gtfsrt2lc.parse(format, false);
+        let rtlc = await gtfsrt2lc.parse({ format: format, objectMode: false });
         // Output data
         rtlc.pipe(process.stdout);
         rtlc.on('end', () => {
