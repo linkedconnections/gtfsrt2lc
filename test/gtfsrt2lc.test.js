@@ -200,7 +200,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in jsonld format', async () => {
     grt.setIndexes(memIndexes);
-    let rt_stream = await grt.parse({ format: 'json' });
+    let rt_stream = await grt.parse({ format: 'jsonld' });
     let buffer = [];
 
     expect.assertions(2);
