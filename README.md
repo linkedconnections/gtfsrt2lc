@@ -32,12 +32,14 @@ GTFS-RT to linked connections converter use --help to discover how to use it
   Options:
   -r --real-time <realTime>      URL/path to gtfs-rt feed
   -s --static <static>           URL/path to static gtfs feed
-  -S --store <store>             Store type: LevelStore (uses your harddisk to avoid that you run out of RAM) or MemStore (default)
-  -g --grep                      Use grep to index only the trips present in the GTFS-RT. Useful for dealing small updates and big GTFS feeds in memory.
-  -H --headers <headers>         Extra HTTP headers for requesting the gtfs files. E.g., {\"api-Key\":\"someApiKey\"}
   -u --uris-template <template>  Templates for Linked Connection URIs following the RFC 6570 specification
+  -H --headers <headers>         Extra HTTP headers for requesting the gtfs files. E.g., {\"api-Key\":\"someApiKey\"}
   -f --format <format>           Output serialization format. Choose from json, jsonld, turtle, ntriples and csv. (Default: json)
+  -S --store <store>             Store type: LevelStore (uses your harddisk to avoid that you run out of RAM) or MemStore (default)
+  -g --grep                      Use grep to index only the trips present in the GTFS-RT. Useful for dealing with big GTFS feeds in memory.
+  -d --deduce                    Create additional indexes to identify Trips on GTFS-RT feeds that do not provide a trip_id
   -h, --help                     output usage information
+
 ```
 
 Now, to run the tool with the example data, first download the [datasets](https://github.com/linkedconnections/gtfsrt2lc/tree/master/test/data), provide a URI template (see an example [here](https://github.com/linkedconnections/gtfsrt2lc/blob/master/uris_template_example.json)) and then execute the following command:
@@ -51,9 +53,11 @@ Sometimes, some APIs require you to provide an API key through a custom HTTP hea
 gtfsrtlc -r https://transport.operator/gtfs-rt/api -s https://transport.operator/gtfs/api -u /path/to/uris_template.json -H "{ \"Custom-Header\": \"secret_api_key\" }"
 ```
 
+Also, some GTFS-RT feeds do not explicitly provide the `trip_id` of `TripDescriptor`s. According to the [spec](https://gtfs.org/reference/realtime/v2/#message-tripdescriptor), it needs to be deduced from the `routeId`, `startDate`, `startTime` and `directioId`. To do this, we need to rely on additional GTFS indexes, which can be enabled by using the option `-d`.
+
 If you are using this tool as a library in a periodic process (e.g., fetching GTFS-RT updates every 30s), it is useful to reuse the static indexes needed to complete the Connections data. Creating such indexes may take while, depending on the size of the GTFS feed. Therefore, it is recommended to run the process for getting the indexes once and keep them either in memory (use `-S MemStore`) or on disk (use `-S LevelStore`), depending on the size of the GTFS feed and your hardware capabilities.
 
-If you are processing data with a big GTFS feed and you don't want to store the indexes on disk, we also provide an alternative approach that first analyzes the GTFS-RT feed to find which trips are being updated, and extracts only the indexes for these trips, using the  [`grep`](https://en.wikipedia.org/wiki/Grep) Unix command.  This approach could be used to build in-memory caches containing the required indexes. Keep in mind that the time to build the indexes scales proportionally to the amount of updated trips.   
+If you are processing data with a big GTFS feed and you don't want to store the indexes on disk, we also provide an alternative approach that first analyzes the GTFS-RT feed to find which trips are being updated, and extracts only the indexes for these trips, using the  [`grep`](https://en.wikipedia.org/wiki/Grep) Unix command.  This approach could be used to build in-memory caches containing the required indexes. Keep in mind that the time to build the indexes scales proportionally to the amount of updated trips.
 
 ## How does it work
 

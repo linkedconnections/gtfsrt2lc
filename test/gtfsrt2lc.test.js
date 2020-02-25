@@ -38,7 +38,7 @@ test('Obtain the list of trips to be updated from GTFS-RT data', async () => {
 test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using MemStore', async () => {
     let gti = new GtfsIndex({ path: static_path });
     expect.assertions(12);
-    memIndexes = await gti.getIndexes({ store: 'MemStore', deduce: true });
+    memIndexes = await gti.getIndexes({ store: 'MemStore' });
 
     expect(memIndexes.routes).toBeDefined();
     expect(memIndexes.trips).toBeDefined();
@@ -579,7 +579,42 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
 
     expect(buffer.length).toBeGreaterThan(0);
     expect(finish).toBeTruthy();
+
+    await indexes.routes.close();
+    await indexes.trips.close();
+    await indexes.stops.close();
+    await indexes.stop_times.close();
 });
+
+test('Test parsing a GTFS-RT feed that does not provide explicit tripIds (use test/data/no_trips_realtime_rawdata)', async () => {
+    grt = new Gtfsrt2lc({ path: './test/data/no_trips_realtime_rawdata', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/no_trips_static_rawdata.zip' });
+    const indexes = await gti.getIndexes({ store: 'LevelStore', deduce: true });
+    grt.setIndexes(indexes);
+
+    let connStream = await grt.parse({ format: 'json', objectMode: true });
+    let buffer = [];
+
+    expect.assertions(2);
+
+    connStream.on('data', async data => {
+        buffer.push(data);
+    });
+
+    let stream_end = new Promise(resolve => {
+        connStream.on('end', () => {
+            resolve(true);
+        });
+        connStream.on('error', () => {
+            resolve(false);
+        });
+    });
+
+    let finish = await stream_end;
+
+    expect(buffer.length).toBeGreaterThan(0);
+    expect(finish).toBeTruthy();
+})
 
 test('Cover GtfsIndex functions', async () => {
     let gti = new GtfsIndex({ path: 'https://gtfs.irail.be/nmbs/gtfs/latest.zip' });
@@ -588,7 +623,16 @@ test('Cover GtfsIndex functions', async () => {
     } catch (err) { }
 
     try {
-        gti = new GtfsIndex('/some/fake/path');
+        await gti.getIndexes({ store: 'fakeFormat'});
+    } catch (err) { }
+
+    gti._path = 'http_fake_url';
+    try {
+        await gti.getIndexes();
+    } catch (err) { }
+
+    gti._path = '/some/fake/path';
+    try {
         await gti.getIndexes();
     } catch (err) { }
 });
