@@ -37,23 +37,22 @@ test('Obtain the list of trips to be updated from GTFS-RT data', async () => {
 
 test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using MemStore', async () => {
     let gti = new GtfsIndex({ path: static_path });
-    expect.assertions(8);
+    expect.assertions(12);
     memIndexes = await gti.getIndexes({ store: 'MemStore' });
 
-    let memRoutes = memIndexes.routes;
-    let memTrips = memIndexes.trips;
-    let memStops = memIndexes.stops;
-    let memStop_times = memIndexes.stop_times;
+    expect(memIndexes.routes).toBeDefined();
+    expect(memIndexes.trips).toBeDefined();
+    expect(memIndexes.stops).toBeDefined();
+    expect(memIndexes.stop_times).toBeDefined();
+    expect(memIndexes.tripsByRoute).toBeDefined();
+    expect(memIndexes.firstStops).toBeDefined();
+    expect(memIndexes.calendar).toBeDefined();
+    expect(memIndexes.calendarDates).toBeDefined();
 
-    expect(memRoutes).toBeDefined();
-    expect(memTrips).toBeDefined();
-    expect(memStops).toBeDefined();
-    expect(memStop_times).toBeDefined();
-
-    expect(memRoutes.size).toBeGreaterThan(0);
-    expect(memTrips.size).toBeGreaterThan(0);
-    expect(memStops.size).toBeGreaterThan(0);
-    expect(memStop_times.size).toBeGreaterThan(0);
+    expect(memIndexes.routes.size).toBeGreaterThan(0);
+    expect(memIndexes.trips.size).toBeGreaterThan(0);
+    expect(memIndexes.stops.size).toBeGreaterThan(0);
+    expect(memIndexes.stop_times.size).toBeGreaterThan(0);
 });
 
 test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using MemStore and grep', async () => {
@@ -95,7 +94,7 @@ test('Extract all indexes from sample static GTFS data (test/data/static_rawdata
 
 test('Check all parsed connections are consistent regarding departure and arrival times using MemStore', async () => {
     grt.setIndexes(memIndexes);
-    let connStream = await grt.parse('json');
+    let connStream = await grt.parse({ format: 'json' });
     let flag = true;
     expect.assertions(2);
 
@@ -128,7 +127,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
 test('Check all parsed connections are consistent regarding departure and arrival times using MemStore with grep', async () => {
     grt.setIndexes(grepIndexes);
-    let connStream = await grt.parse('json');
+    let connStream = await grt.parse({ format: 'json' });
     let flag = true;
     expect.assertions(2);
 
@@ -161,7 +160,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
 test('Check all parsed connections are consistent regarding departure and arrival times using LevelStore', async () => {
     grt.setIndexes(levelIndexes);
-    let connStream = await grt.parse('json');
+    let connStream = await grt.parse({ format: 'json' });
     let flag = true;
     expect.assertions(2);
 
@@ -200,7 +199,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in jsonld format', async () => {
     grt.setIndexes(memIndexes);
-    let rt_stream = await grt.parse('jsonld');
+    let rt_stream = await grt.parse({ format: 'jsonld' });
     let buffer = [];
 
     expect.assertions(2);
@@ -225,7 +224,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in js
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in csv format', async () => {
-    let rt_stream = await grt.parse('csv');
+    let rt_stream = await grt.parse({ format: 'csv' });
     let buffer = [];
 
     expect.assertions(2);
@@ -250,7 +249,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in cs
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in turtle format', async () => {
-    let rt_stream = await grt.parse('turtle');
+    let rt_stream = await grt.parse({ format: 'turtle' });
     let buffer = [];
 
     expect.assertions(2);
@@ -275,7 +274,7 @@ test('Parse real-time update (test/data/realtime_rawdata) and give it back in tu
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in ntriples format', async () => {
-    let rt_stream = await grt.parse('ntriples');
+    let rt_stream = await grt.parse({ format: 'ntriples' });
     let buffer = [];
 
     expect.assertions(2);
@@ -398,7 +397,7 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('turtle', true);
+    let connStream = await grt.parse({ format: 'turtle', objectMode: true });
     let cancelledConnections = [];
 
     expect.assertions(2);
@@ -430,7 +429,7 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     const indexes = await gti.getIndexes({ store: 'MemStore', trips: ut });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('turtle', true);
+    let connStream = await grt.parse({ format: 'turtle', objectMode: true });
     let cancelledConnections = [];
 
     expect.assertions(2);
@@ -461,7 +460,7 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     let indexes = await gti.getIndexes({ store: 'LevelStore' });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('turtle', true);
+    let connStream = await grt.parse({ format: 'turtle', objectMode: true });
     let cancelledConnections = [];
 
     expect.assertions(2);
@@ -497,7 +496,7 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
     const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('json', true);
+    let connStream = await grt.parse({ format: 'json', objectMode: true });
     let buffer = [];
 
     expect.assertions(2);
@@ -528,7 +527,7 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
     const indexes = await gti.getIndexes({ store: 'MemStore', trips: ut });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('json', true);
+    let connStream = await grt.parse({ format: 'json', objectMode: true });
     let buffer = [];
 
     expect.assertions(2);
@@ -558,7 +557,7 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
     const indexes = await gti.getIndexes({ store: 'LevelStore' });
     grt.setIndexes(indexes);
 
-    let connStream = await grt.parse('json', true);
+    let connStream = await grt.parse({ format: 'json', objectMode: true });
     let buffer = [];
 
     expect.assertions(2);
@@ -580,7 +579,42 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
 
     expect(buffer.length).toBeGreaterThan(0);
     expect(finish).toBeTruthy();
+
+    await indexes.routes.close();
+    await indexes.trips.close();
+    await indexes.stops.close();
+    await indexes.stop_times.close();
 });
+
+test('Test parsing a GTFS-RT feed that does not provide explicit tripIds (use test/data/no_trips_realtime_rawdata)', async () => {
+    grt = new Gtfsrt2lc({ path: './test/data/no_trips_realtime_rawdata', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/no_trips_static_rawdata.zip' });
+    const indexes = await gti.getIndexes({ store: 'LevelStore', deduce: true });
+    grt.setIndexes(indexes);
+
+    let connStream = await grt.parse({ format: 'json', objectMode: true });
+    let buffer = [];
+
+    expect.assertions(2);
+
+    connStream.on('data', async data => {
+        buffer.push(data);
+    });
+
+    let stream_end = new Promise(resolve => {
+        connStream.on('end', () => {
+            resolve(true);
+        });
+        connStream.on('error', () => {
+            resolve(false);
+        });
+    });
+
+    let finish = await stream_end;
+
+    expect(buffer.length).toBeGreaterThan(0);
+    expect(finish).toBeTruthy();
+})
 
 test('Cover GtfsIndex functions', async () => {
     let gti = new GtfsIndex({ path: 'https://gtfs.irail.be/nmbs/gtfs/latest.zip' });
@@ -589,7 +623,16 @@ test('Cover GtfsIndex functions', async () => {
     } catch (err) { }
 
     try {
-        gti = new GtfsIndex('/some/fake/path');
+        await gti.getIndexes({ store: 'fakeFormat'});
+    } catch (err) { }
+
+    gti._path = 'http_fake_url';
+    try {
+        await gti.getIndexes();
+    } catch (err) { }
+
+    gti._path = '/some/fake/path';
+    try {
         await gti.getIndexes();
     } catch (err) { }
 });

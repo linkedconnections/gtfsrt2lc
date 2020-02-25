@@ -12,7 +12,15 @@ npm install -g gtfsrt2lc
 
 ## Test it
 
-This bundle comes with example data of both, a `GTFS` data source and a `GTFS-RT` update that belong to the Belgian Railway company [NMBS](http://www.belgianrail.be/en/) and that can be used for testing this tool. Once installed, the usage can be checked as follows:
+If you just want to parse a `GTFS-RT` feed to plain JSON you can do it in the command line as follows:
+
+``` bash
+gtfsrt2json -r http://gtfsrt.feed/ -H {\"api-key-if-any\":\"your_api_key\"}
+```
+
+See below to see how to use this functionality in your code.
+
+This bundle comes with example data of both `GTFS`  and  `GTFS-RT` data belonging to the Belgian Railway company [NMBS](http://www.belgianrail.be/en/) and that can be used for testing this tool. Once installed, the usage can be checked as follows:
 
 ```bash
 gtfsrt2lc --help
@@ -22,18 +30,19 @@ GTFS-RT to linked connections converter use --help to discover how to use it
   Usage: gtfsrt2lc [options]
 
   Options:
-
   -r --real-time <realTime>      URL/path to gtfs-rt feed
   -s --static <static>           URL/path to static gtfs feed
-  -S --store <store>             Store type: KeyvStore (uses your harddisk to avoid that you run out of RAM) or MemStore (default)
-  -g --grep                      Use grep to index only the trips present in the GTFS-RT. Useful for dealing with big GTFS feeds in memory.
-  -H --headers <headers>         Extra HTTP headers for requesting the gtfs files. E.g., { apiKey: "someApiKey" }
   -u --uris-template <template>  Templates for Linked Connection URIs following the RFC 6570 specification
+  -H --headers <headers>         Extra HTTP headers for requesting the gtfs files. E.g., {\"api-Key\":\"someApiKey\"}
   -f --format <format>           Output serialization format. Choose from json, jsonld, turtle, ntriples and csv. (Default: json)
+  -S --store <store>             Store type: LevelStore (uses your harddisk to avoid that you run out of RAM) or MemStore (default)
+  -g --grep                      Use grep to index only the trips present in the GTFS-RT. Useful for dealing with big GTFS feeds in memory.
+  -d --deduce                    Create additional indexes to identify Trips on GTFS-RT feeds that do not provide a trip_id
   -h, --help                     output usage information
+
 ```
 
-Now, to run the tool with the example data, first download the [datasets](https://github.com/linkedconnections/gtfsrt2lc/tree/master/test/data), provide the URI templates (see an example [here](https://github.com/linkedconnections/gtfsrt2lc/blob/master/uris_template_example.json)) and then execute the following command:
+Now, to run the tool with the example data, first download the [datasets](https://github.com/linkedconnections/gtfsrt2lc/tree/master/test/data), provide a URI template (see an example [here](https://github.com/linkedconnections/gtfsrt2lc/blob/master/uris_template_example.json)) and then execute the following command:
 
 ```bash
 gtfsrt2lc -r /path/to/realtime_rawdata -s /path/to/static_rawdata.zip -u /path/to/uris_template.json
@@ -44,9 +53,11 @@ Sometimes, some APIs require you to provide an API key through a custom HTTP hea
 gtfsrtlc -r https://transport.operator/gtfs-rt/api -s https://transport.operator/gtfs/api -u /path/to/uris_template.json -H "{ \"Custom-Header\": \"secret_api_key\" }"
 ```
 
-If you are using this tool as a library in a periodic process (e.g., fetching GTFS-RT updates every 30s), it is useful to reuse the static indexes needed to complete the Connections data. Creating such indexes may take while, depending on the size of the GTFS feed. Therefore, it is recommended to run the process for getting the indexes once and keep them either in memory (use `-S MemStore`) or on disk (use `-S KeyvStore`), depending on the size of the GTFS feed and your hardware capabilities.
+Also, some GTFS-RT feeds do not explicitly provide the `trip_id` of `TripDescriptor`s. According to the [spec](https://gtfs.org/reference/realtime/v2/#message-tripdescriptor), it needs to be deduced from the `routeId`, `startDate`, `startTime` and `directioId`. To do this, we need to rely on additional GTFS indexes, which can be enabled by using the option `-d`.
 
-If you are processing data with a big GTFS feed and you don't want to store the indexes on disk, we also provide an alternative approach that first analyzes the GTFS-RT feed to find which trips are being updated, and extracts only the indexes for these trips, using a [`grep`](https://en.wikipedia.org/wiki/Grep) based function.  This approach could be used to be build in-memory caches containing the required indexes. Keep in mind that the time to build the indexes scales proportionally to the amount of updated trips.   
+If you are using this tool as a library in a periodic process (e.g., fetching GTFS-RT updates every 30s), it is useful to reuse the static indexes needed to complete the Connections data. Creating such indexes may take while, depending on the size of the GTFS feed. Therefore, it is recommended to run the process for getting the indexes once and keep them either in memory (use `-S MemStore`) or on disk (use `-S LevelStore`), depending on the size of the GTFS feed and your hardware capabilities.
+
+If you are processing data with a big GTFS feed and you don't want to store the indexes on disk, we also provide an alternative approach that first analyzes the GTFS-RT feed to find which trips are being updated, and extracts only the indexes for these trips, using the  [`grep`](https://en.wikipedia.org/wiki/Grep) Unix command.  This approach could be used to build in-memory caches containing the required indexes. Keep in mind that the time to build the indexes scales proportionally to the amount of updated trips.
 
 ## How does it work
 
@@ -180,34 +191,46 @@ You can use it in your code as follows:
 
 ```javascript
 const { GtfsIndex, Gtfsrt2LC } = require('gtfsrt2lc');
-// Required custom HTTP headers
-const headers = { apiKey: 'someApiKey' }; // Empty object if not needed
-// Where to store the static indexes (RAM or disk)
-const store = 'MemStore'; // For big GTFS sources use KeyvStore
 
-async function parse() {
-    const indexer = new GtfsIndex(<URL/path to your GTFS feed>);
-    let parser = new Gtfsrt2LC(<URL/path to your GTFS-RT feed>, 'path/to/your/URI_template.json');
-    
-    // If using grep, extract the list of updated trips first.
-    let updatedTrips = await gtfsrt2lc.getUpdatedTrips(headers); // null if not needed
-    // Get GTFS indexes (stops.txt, routes.txt, trips.txt, stop_times.txt)
-    let indexes = await gtfsIndexer.getIndexes(headers, store, updatedTrips);
-
-
-}
-indexer.getIndexes().then(async ([routes, trips, stops, stop_times]) => {
-    // Proceed to parse GTFS-RT
-    let parser = new Gtfsrt2LC(<path or URL to your GTFS-RT update>, '/path/to/your/URI_template.json');
-    // Choose the serialization format among json, jsonld, csv, turtle and ntriples
-    let rtlc = await gtfsrt2lc.parse(format, true /* false for string-based stream */);
-    // Output data
-    rtlc.on('data', data => {
-        console.log(data);
-    });
-}).catch(err => {
-    console.error(err);
+// Object used to extract GTFS indexes
+const indexer = new GtfsIndex({
+    path: <URL/path to your GTFS feed>,
+    headers: { apiKey: 'someApiKey' }
 });
+
+var parser = new Gtfsrt2LC({
+    path: <URL/path to your GTFS-RT feed>,
+    uris: 'path/to/your/URI_template.json' 
+});
+
+async function parse2LinkedConnections() {
+    // If using grep, extract the list of updated trips first.
+    let updatedTrips = await parser.getUpdatedTrips();
+    // Get GTFS indexes (stops.txt, routes.txt, trips.txt, stop_times.txt)
+    let indexes = await indexer.getIndexes({
+        store: 'MemStore', // For big GTFS sources use LevelStore
+        trips: updatedTrips
+    });
+    // Set GTFS indexes
+	parser.setIndexes(indexes);
+    // Create stream of updated Linked Connections
+    let rtlc = await parser.parse({ 
+        format: 'jsonld' // See above for other supported formats,
+        objectMode: true // If true produces Connections as objects
+    });
+    
+    for await (const connection of rtlc) {
+        console.log(connection);
+    }
+}
+
+// Parse a GTFS-RT feed to plain JSON
+async function parse2Json() {
+    console.log(await parser.parse2Json())
+}
+
+parse2LinkedConnections();
+parse2Json();
 ```
 
 ## Authors

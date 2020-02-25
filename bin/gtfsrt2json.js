@@ -29,7 +29,7 @@ if (program.headers) {
 
 async function parse() {
     let gtfsrt2lc = new Gtfsrt2LC({ path: program.realTime, headers: headers });
-    console.log(await gtfsrt2lc.parse2Json());
+    console.log(JSON.stringify(await gtfsrt2lc.parse2Json()));
 }
 
 parse();
