@@ -37,23 +37,22 @@ test('Obtain the list of trips to be updated from GTFS-RT data', async () => {
 
 test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using MemStore', async () => {
     let gti = new GtfsIndex({ path: static_path });
-    expect.assertions(8);
-    memIndexes = await gti.getIndexes({ store: 'MemStore' });
+    expect.assertions(12);
+    memIndexes = await gti.getIndexes({ store: 'MemStore', deduce: true });
 
-    let memRoutes = memIndexes.routes;
-    let memTrips = memIndexes.trips;
-    let memStops = memIndexes.stops;
-    let memStop_times = memIndexes.stop_times;
+    expect(memIndexes.routes).toBeDefined();
+    expect(memIndexes.trips).toBeDefined();
+    expect(memIndexes.stops).toBeDefined();
+    expect(memIndexes.stop_times).toBeDefined();
+    expect(memIndexes.tripsByRoute).toBeDefined();
+    expect(memIndexes.firstStops).toBeDefined();
+    expect(memIndexes.calendar).toBeDefined();
+    expect(memIndexes.calendarDates).toBeDefined();
 
-    expect(memRoutes).toBeDefined();
-    expect(memTrips).toBeDefined();
-    expect(memStops).toBeDefined();
-    expect(memStop_times).toBeDefined();
-
-    expect(memRoutes.size).toBeGreaterThan(0);
-    expect(memTrips.size).toBeGreaterThan(0);
-    expect(memStops.size).toBeGreaterThan(0);
-    expect(memStop_times.size).toBeGreaterThan(0);
+    expect(memIndexes.routes.size).toBeGreaterThan(0);
+    expect(memIndexes.trips.size).toBeGreaterThan(0);
+    expect(memIndexes.stops.size).toBeGreaterThan(0);
+    expect(memIndexes.stop_times.size).toBeGreaterThan(0);
 });
 
 test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using MemStore and grep', async () => {
