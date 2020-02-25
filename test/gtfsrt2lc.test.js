@@ -588,7 +588,7 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
 
 test('Test parsing a GTFS-RT feed that does not provide explicit tripIds (use test/data/no_trips_realtime_rawdata)', async () => {
     grt = new Gtfsrt2lc({ path: './test/data/no_trips_realtime_rawdata', uris: mock_uris });
-    let gti = new GtfsIndex({ path: './test/data/no_trips_static.zip' });
+    let gti = new GtfsIndex({ path: './test/data/no_trips_static_rawdata.zip' });
     const indexes = await gti.getIndexes({ store: 'LevelStore', deduce: true });
     grt.setIndexes(indexes);
 
