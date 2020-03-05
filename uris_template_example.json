@@ -2,8 +2,9 @@
     "stop": "http://example.org/stations/{stops.stop_id}",
     "route": "http://example.org/routes/{routeLabel}/{routes.route_id}",
     "trip": "http://example.org/trips/{trips.trip_id}/{tripLabel}/{tripStartTime}",
-    "connection": "http://example.org/connections/{tripLabel}/00{connection.departureStop}/{tripStartTime}/",
+    "connection": "http://example.org/connections/{tripLabel}/00{depStop}/{tripStartTime}/",
     "resolve": {
+        "depStop": "connection.departureStop.stop_id",
         "routeLabel": "routes.route_long_name.replace(/\\s/gi, '');",
         "tripLabel": "routes.route_short_name + routes.route_id;",
         "tripStartTime": "format(trips.startTime, \"yyyyMMdd'T'HHmm\");"

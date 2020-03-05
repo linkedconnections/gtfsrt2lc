@@ -5,8 +5,6 @@ const GtfsIndex = require('../lib/GtfsIndex');
 const Gtfsrt2LC = require('../lib/Gtfsrt2LC');
 var program = require('commander');
 
-console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
-
 program
     .option('-r --real-time <realTime>', 'URL/path to gtfs-rt feed')
     .option('-s --static <static>', 'URL/path to static gtfs feed')
@@ -20,16 +18,19 @@ program
 
 if (!program.realTime) {
     console.error('Please provide a url or a path to a GTFS-RT feed');
+    console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
     process.exit();
 }
 
 if (!program.static) {
     console.error('Please provide a url or a path to a GTFS feed');
+    console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
     process.exit();
 }
 
 if (!program.urisTemplate) {
     console.error('Please provide path to a template file');
+    console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
     process.exit();
 }
 
@@ -43,6 +44,7 @@ try {
     template = JSON.parse(fs.readFileSync(program.urisTemplate, 'utf8'));
 } catch (err) {
     console.error('Please provide a valid path to a template file');
+    console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
     process.exit();
 }
 // Get resulting data format
@@ -54,6 +56,7 @@ if (program.headers) {
         headers = JSON.parse(program.headers);
     } catch (err) {
         console.error('Please provide a valid JSON string for the extra HTTP headers');
+        console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
         process.exit();
     }
 }
@@ -63,6 +66,7 @@ var gtfsrt2lc = new Gtfsrt2LC({ path: program.realTime, uris: template, headers:
 var gtfsIndexer = new GtfsIndex({ path: program.static, headers: headers });
 
 async function processUpdate(store, grep, deduce) {
+    console.error("Converting the GTFS-RT feed to Linked Connections");
     try {
         let trips = null;
 
@@ -71,6 +75,7 @@ async function processUpdate(store, grep, deduce) {
             trips = await gtfsrt2lc.getUpdatedTrips();
         }
         // Get GTFS indexes (stops.txt, routes.txt, trips.txt, stop_times.txt)
+        console.error("Creating the GTFS indexes needed for the conversion");
         let indexes = await gtfsIndexer.getIndexes({ store: store, trips: trips, deduce: deduce });
         console.error(`GTFS indexing process took ${new Date().getTime() - t0.getTime()} ms`);
         t0 = new Date();
