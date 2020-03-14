@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/linkedconnections/gtfsrt2lc#readme",
   "dependencies": {
-    "commander": "^4.1.1",
+    "commander": "^5.0.0",
     "date-fns": "^2.9.0",
     "del": "^5.1.0",
     "fast-csv": "^4.1.1",
