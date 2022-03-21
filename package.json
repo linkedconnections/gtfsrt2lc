@@ -1,15 +1,16 @@
 {
   "name": "gtfsrt2lc",
-  "version": "1.4.3",
+  "version": "1.4.5",
   "description": "Converts the GTFS-RT to Linked Connections",
   "main": "./Gtfsrt2LC.js",
   "bin": {
-    "gtfsrt2lc": "./bin/gtfsrt2lc.js",
-    "gtfsrt2json": "./bin/gtfsrt2json.js"
+    "gtfsrt2lc": "bin/gtfsrt2lc.js",
+    "gtfsrt2json": "bin/gtfsrt2json.js"
   },
   "scripts": {
     "test": "jest",
-    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls"
+    "test-ci": "jest --ci --maxWorkers=4 --coverage",
+    "coveralls": "jest --coverage && coveralls < coverage/lcov.info"
   },
   "repository": {
     "type": "git",
@@ -22,7 +23,7 @@
   },
   "homepage": "https://github.com/linkedconnections/gtfsrt2lc#readme",
   "dependencies": {
-    "commander": "^4.1.1",
+    "commander": "^5.0.0",
     "date-fns": "^2.9.0",
     "del": "^5.1.0",
     "fast-csv": "^4.1.1",
@@ -36,7 +37,7 @@
     "zlib": "^1.0.5"
   },
   "devDependencies": {
-    "coveralls": "^3.0.9",
-    "jest": "^25.1.0"
+    "coveralls": "^3.1.1",
+    "jest": "^27.5.1"
   }
 }
