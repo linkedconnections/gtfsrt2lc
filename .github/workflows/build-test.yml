@@ -36,12 +36,12 @@ jobs:
           flag-name: run-${{ matrix.node-version }}
           parallel: true
     
-    coveralls:
-      needs: test
-      runs-on: ubuntu-latest
-      steps:
-        - name: Consolidate test coverage from different jobs
-          uses: coverallsapp/github-action@master
-          with:
-            github-token: ${{ secrets.github_token }}
-            parallel-finished: true
+  coveralls:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consolidate test coverage from different jobs
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true
