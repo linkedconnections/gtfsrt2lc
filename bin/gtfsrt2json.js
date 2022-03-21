@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
 const Gtfsrt2LC = require('../lib/Gtfsrt2LC');
 var program = require('commander');
 
