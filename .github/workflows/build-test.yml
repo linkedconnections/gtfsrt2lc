@@ -30,11 +30,11 @@ jobs:
       - run: npm test-ci
 
       - name: Submit coverage results
-          uses: coverallsapp/github-action@master
-          with:
-            github-token: ${{ secrets.github_token }}
-            flag-name: run-${{ matrix.node-version }}
-            parallel: true
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          flag-name: run-${{ matrix.node-version }}
+          parallel: true
     
     coveralls:
       needs: test
