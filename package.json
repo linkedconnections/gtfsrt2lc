@@ -9,6 +9,7 @@
   },
   "scripts": {
     "test": "jest",
+    "test-ci": "jest --ci --maxWorkers=4 --coverage",
     "coveralls": "jest --coverage && coveralls < coverage/lcov.info"
   },
   "repository": {
