@@ -1,11 +1,11 @@
 {
   "name": "gtfsrt2lc",
-  "version": "1.4.3",
+  "version": "1.4.5",
   "description": "Converts the GTFS-RT to Linked Connections",
   "main": "./Gtfsrt2LC.js",
   "bin": {
-    "gtfsrt2lc": "./bin/gtfsrt2lc.js",
-    "gtfsrt2json": "./bin/gtfsrt2json.js"
+    "gtfsrt2lc": "bin/gtfsrt2lc.js",
+    "gtfsrt2json": "bin/gtfsrt2json.js"
   },
   "scripts": {
     "test": "jest",
@@ -37,6 +37,6 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.9",
-    "jest": "^25.1.0"
+    "jest": "^27.5.1"
   }
 }
