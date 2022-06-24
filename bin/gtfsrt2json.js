@@ -7,7 +7,7 @@ console.error("GTFS-RT to JSON converter use --help to discover how to use it");
 
 program
     .option('-r --real-time <realTime>', 'URL/path to gtfs-rt feed')
-    .option('-H --headers <headers>', 'Extra HTTP headers for requesting the gtfs files. E.g., {\\"api-Key\\":\\"someApiKey\\"}')
+    .option('-H --headers <headers>', 'Extra HTTP headers for requesting the gtfs files. E.g., {\\"some-header\\":\\"some-API-Key\\"}')
     .parse(process.argv);
 
 if (!program.realTime) {
