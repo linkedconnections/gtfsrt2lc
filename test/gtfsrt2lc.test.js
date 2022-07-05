@@ -1,5 +1,7 @@
+const fs = require('fs');
 const GtfsIndex = require('../lib/GtfsIndex');
 const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
+const Utils = require('../lib/Utils');
 
 const static_path = './test/data/static_rawdata.zip';
 const rt_path = './test/data/realtime_rawdata';
@@ -24,7 +26,7 @@ var grepConnections = [];
 var levelConnections = [];
 
 
-// Make sure travis-ci does not crash due to timeouts
+// Make sure test process does not crash due to timeouts
 jest.setTimeout(180000);
 
 test('Obtain the list of trips to be updated from GTFS-RT data', async () => {
@@ -77,7 +79,7 @@ test('Extract all indexes from sample static GTFS data (test/data/static_rawdata
 });
 
 test('Extract all indexes from sample static GTFS data (test/data/static_rawdata.zip) using LevelStore', async () => {
-    let gti = new GtfsIndex({ path: static_path });
+    const gti = new GtfsIndex({ path: static_path });
     expect.assertions(4);
     levelIndexes = await gti.getIndexes({ store: 'LevelStore' });
 
@@ -90,6 +92,22 @@ test('Extract all indexes from sample static GTFS data (test/data/static_rawdata
     expect(levelTrips).toBeDefined();
     expect(levelStops).toBeDefined();
     expect(levelStop_times).toBeDefined();
+});
+
+test('Extract all indexes when source is given as decompressed folder', async () => {
+    // First decompress GTFS zip file
+    const fileStream = fs.createReadStream(static_path);
+    const sourcePath = './test/data/decompressed';
+    await Utils.unzipStream(fileStream, sourcePath);
+    // Extract indexes
+    expect.assertions(4);
+    const gti = new GtfsIndex({ path: sourcePath });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
+
+    expect(indexes.routes).toBeDefined();
+    expect(indexes.trips).toBeDefined();
+    expect(indexes.stops).toBeDefined();
+    expect(indexes.stop_times).toBeDefined();
 });
 
 test('Check all parsed connections are consistent regarding departure and arrival times', async () => {
