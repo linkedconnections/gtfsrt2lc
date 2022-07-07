@@ -1,4 +1,5 @@
 const fs = require('fs');
+const del = require('del');
 const GtfsIndex = require('../lib/GtfsIndex');
 const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
 const Utils = require('../lib/Utils');
@@ -108,6 +109,7 @@ test('Extract all indexes when source is given as decompressed folder', async ()
     expect(indexes.trips).toBeDefined();
     expect(indexes.stops).toBeDefined();
     expect(indexes.stop_times).toBeDefined();
+    await del(['./test/data/decompressed'], { force: true });
 });
 
 test('Check all parsed connections are consistent regarding departure and arrival times', async () => {
@@ -544,7 +546,7 @@ test('Test measures to produce consistent connections', () => {
 
     // Test arrival is added with the current departure delay
     update['arrival'] = undefined;
-    let prevUpdate = {"departure": { "delay": 3600 }};
+    let prevUpdate = { "departure": { "delay": 3600 } };
     let timestamp = new Date('2020-03-03T08:21:00.000Z').getTime() / 1000;
     grt.checkUpdate(update, prevUpdate, staticData, 2, 10, serviceDay, timestamp);
     expect(update['arrival']['delay']).toBe(3600);
@@ -554,7 +556,7 @@ test('Test measures to produce consistent connections', () => {
     update['arrival'] = undefined;
     update['departure']['delay'] = 60;
     update['departure']['time'] = new Date('2020-03-03T08:31:00.000Z').getTime() / 1000;
-    prevUpdate = {"departure": { "delay": 3600 }};
+    prevUpdate = { "departure": { "delay": 3600 } };
     timestamp = new Date('2020-03-03T10:21:00.000Z').getTime() / 1000;
     grt.checkUpdate(update, prevUpdate, staticData, 2, 10, serviceDay, timestamp);
     expect(update['arrival']['delay']).toBe(60);
