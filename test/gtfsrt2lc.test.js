@@ -583,3 +583,18 @@ test('Cover GtfsIndex functions', async () => {
         await gti.getIndexes();
     } catch (err) { }
 });
+
+test('Cover Gtfsrt2LC functions', async () => {
+    grt = new Gtfsrt2lc({ path: rt_path, uris: mock_uris, headers: {} });
+    // Test for resolveScheduleRelationship
+    const notAvailable = grt.resolveScheduleRelationship(1, 1);
+    const mustPhone = grt.resolveScheduleRelationship(0, 2);
+    const mustCoordinate = grt.resolveScheduleRelationship(0, 3);
+    // Test for getting headers
+    const headers = grt.headers;
+
+    expect(notAvailable).toBe('gtfs:NotAvailable');
+    expect(mustPhone).toBe('gtfs:MustPhone');
+    expect(mustCoordinate).toBe('gtfs:MustCoordinateWithDriver');
+    expect(headers).toBeDefined();
+});
