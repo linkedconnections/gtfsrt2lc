@@ -591,7 +591,7 @@ test('Cover Gtfsrt2LC functions', async () => {
     const mustPhone = grt.resolveScheduleRelationship(0, 2);
     const mustCoordinate = grt.resolveScheduleRelationship(0, 3);
     // Test for getting headers
-    const headers = grt.headers();
+    const headers = grt.headers;
 
     expect(notAvailable).toBe('gtfs:NotAvailable');
     expect(mustPhone).toBe('gtfs:MustPhone');
