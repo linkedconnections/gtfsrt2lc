@@ -1,5 +1,6 @@
 const fs = require('fs');
 const del = require('del');
+const uri_templates = require('uri-templates');
 const GtfsIndex = require('../lib/GtfsIndex');
 const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
 const Utils = require('../lib/Utils');
@@ -114,7 +115,7 @@ test('Extract all indexes when source is given as decompressed folder', async ()
 
 test('Check all parsed connections are consistent regarding departure and arrival times', async () => {
     grt.setIndexes(memIndexes);
-    let connStream = await grt.parse({ format: 'json' });
+    let connStream = await grt.parse({ format: 'jsonld' });
     let flag = true;
     expect.assertions(2);
 
@@ -147,7 +148,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
 test('Check all parsed connections are consistent regarding departure and arrival times using MemStore with grep', async () => {
     grt.setIndexes(grepIndexes);
-    let connStream = await grt.parse({ format: 'json' });
+    let connStream = await grt.parse({ format: 'jsonld' });
     let flag = true;
     expect.assertions(2);
 
@@ -180,7 +181,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
 
 test('Check all parsed connections are consistent regarding departure and arrival times using LevelStore', async () => {
     grt.setIndexes(levelIndexes);
-    let connStream = await grt.parse({ format: 'json' });
+    let connStream = await grt.parse({ format: 'jsonld' });
     let flag = true;
     expect.assertions(2);
 
@@ -584,17 +585,22 @@ test('Cover GtfsIndex functions', async () => {
     } catch (err) { }
 });
 
-test('Cover Gtfsrt2LC functions', async () => {
-    grt = new Gtfsrt2lc({ path: rt_path, uris: mock_uris, headers: {} });
-    // Test for resolveScheduleRelationship
-    const notAvailable = grt.resolveScheduleRelationship(1, 1);
-    const mustPhone = grt.resolveScheduleRelationship(0, 2);
-    const mustCoordinate = grt.resolveScheduleRelationship(0, 3);
-    // Test for getting headers
-    const headers = grt.headers;
+test('Cover Utils functions', async () => {
+    // Test for resolve ScheduleRelationship
+    const regular = Utils.resolveScheduleRelationship(0);
+    const notAvailable = Utils.resolveScheduleRelationship(1);
+    const mustPhone = Utils.resolveScheduleRelationship(2);
+    const mustCoordinate = Utils.resolveScheduleRelationship(3);
 
+    // Test for URI building function
+    const connTimes = Utils.resolveURI(
+        uri_templates("http://example.org/test/{connection.departureTime(yyyyMMdd)}/{connection.arrivalTime(yyyyMMdd)}"),
+        { departureTime: new Date('2022-09-27'), arrivalTime: new Date('2022-09-27') }
+    );
+
+    expect(regular).toBe('gtfs:Regular');
     expect(notAvailable).toBe('gtfs:NotAvailable');
     expect(mustPhone).toBe('gtfs:MustPhone');
     expect(mustCoordinate).toBe('gtfs:MustCoordinateWithDriver');
-    expect(headers).toBeDefined();
+    expect(connTimes).toBe("http://example.org/test/20220927/20220927")
 });
