@@ -1,5 +1,6 @@
 const fs = require('fs');
 const del = require('del');
+const uri_templates = require('uri-templates');
 const GtfsIndex = require('../lib/GtfsIndex');
 const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
 const Utils = require('../lib/Utils');
@@ -582,4 +583,24 @@ test('Cover GtfsIndex functions', async () => {
     try {
         await gti.getIndexes();
     } catch (err) { }
+});
+
+test('Cover Utils functions', async () => {
+    // Test for resolve ScheduleRelationship
+    const regular = Utils.resolveScheduleRelationship(0);
+    const notAvailable = Utils.resolveScheduleRelationship(1);
+    const mustPhone = Utils.resolveScheduleRelationship(2);
+    const mustCoordinate = Utils.resolveScheduleRelationship(3);
+
+    // Test for URI building function
+    const connTimes = Utils.resolveURI(
+        uri_templates("http://example.org/test/{connection.departureTime(yyyyMMdd'T'HHmm)}/{connection.arrivalTime(yyyyMMdd'T'HHmm)}"),
+        { departureTime: new Date('Sep 27 2022 19:00:00 GMT+0200'), arrivalTime: new Date('Sep 27 2022 19:10:00 GMT+0200') }
+    );
+
+    expect(regular).toBe('gtfs:Regular');
+    expect(notAvailable).toBe('gtfs:NotAvailable');
+    expect(mustPhone).toBe('gtfs:MustPhone');
+    expect(mustCoordinate).toBe('gtfs:MustCoordinateWithDriver');
+    expect(connTimes).toBe("http://example.org/test/20220927T1900/20220927T1910")
 });
