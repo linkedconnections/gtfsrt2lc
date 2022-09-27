@@ -30,12 +30,6 @@ if (!program.static) {
     process.exit();
 }
 
-if (!program.urisTemplate) {
-    console.error('Please provide path to a template file');
-    console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
-    process.exit();
-}
-
 if (!program.store) {
     program.store = 'MemStore';
 }
@@ -43,7 +37,9 @@ if (!program.store) {
 // Load URIs template
 let template = null;
 try {
-    template = JSON.parse(fs.readFileSync(program.urisTemplate, 'utf8'));
+    if (program.urisTemplate) {
+        template = JSON.parse(fs.readFileSync(program.urisTemplate, 'utf8'));
+    }
 } catch (err) {
     console.error('Please provide a valid path to a template file');
     console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
