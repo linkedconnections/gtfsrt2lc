@@ -594,13 +594,13 @@ test('Cover Utils functions', async () => {
 
     // Test for URI building function
     const connTimes = Utils.resolveURI(
-        uri_templates("http://example.org/test/{connection.departureTime(yyyyMMdd'T'HHmm)}/{connection.arrivalTime(yyyyMMdd'T'HHmm)}"),
-        { departureTime: new Date('Sep 27 2022 19:00:00 GMT+0200'), arrivalTime: new Date('Sep 27 2022 19:10:00 GMT+0200') }
+        uri_templates("http://example.org/test/{connection.departureTime(yyyyMMdd)}/{connection.arrivalTime(yyyyMMdd)}"),
+        { departureTime: new Date('2022-09-27'), arrivalTime: new Date('2022-09-27') }
     );
 
     expect(regular).toBe('gtfs:Regular');
     expect(notAvailable).toBe('gtfs:NotAvailable');
     expect(mustPhone).toBe('gtfs:MustPhone');
     expect(mustCoordinate).toBe('gtfs:MustCoordinateWithDriver');
-    expect(connTimes).toBe("http://example.org/test/20220927T1900/20220927T1910")
+    expect(connTimes).toBe("http://example.org/test/20220927/20220927")
 });
