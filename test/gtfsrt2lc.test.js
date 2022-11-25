@@ -583,6 +583,10 @@ test('Cover GtfsIndex functions', async () => {
     try {
         await gti.getIndexes();
     } catch (err) { }
+
+    try {
+        await gti.download('http://google.com');
+    } catch (err) { }
 });
 
 test('Cover Utils functions', async () => {
