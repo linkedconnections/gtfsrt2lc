@@ -594,6 +594,41 @@ test('Test measures to produce consistent connections', () => {
     expect(update['arrival']['time']).toBe(new Date('2020-03-03T08:21:00.000Z').getTime() / 1000);
 });
 
+test('Non-existent gtfs-rt file throws exception', async () => {
+    grt = new Gtfsrt2lc({ path: './data/path/to/fake.file', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/bustang.gtfs.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
+    grt.setIndexes(indexes);
+
+    let failed = null;
+
+    try {
+        const connStream = await grt.parse({ format: 'json', objectMode: true });
+    } catch (err) {
+        failed = err;
+    }
+
+    expect(failed).toBeDefined()
+});
+
+test('Missing index throws exception', async () => {
+    grt = new Gtfsrt2lc({ path: './data/path/bustang.pb', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/bustang.gtfs.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
+    grt.setIndexes(indexes);
+    grt.stops = null;
+
+    let failed = null;
+
+    try {
+        const connStream = await grt.parse({ format: 'json', objectMode: true });
+    } catch (err) {
+        failed = err;
+    }
+
+    expect(failed).toBeDefined()
+});
+
 test('Cover GtfsIndex functions', async () => {
     let gti = new GtfsIndex({ path: 'https://gtfs.irail.be/nmbs/gtfs/latest.zip' });
     try {
