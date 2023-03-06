@@ -1,5 +1,6 @@
 const fs = require('fs');
 const del = require('del');
+const { Readable } = require('stream');
 const uri_templates = require('uri-templates');
 const GtfsIndex = require('../lib/GtfsIndex');
 const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
@@ -627,6 +628,28 @@ test('Missing index throws exception', async () => {
     }
 
     expect(failed).toBeDefined()
+});
+
+test('Cover Gtfsrt2LC functions', async () => {
+    const gtfsrt2lc = new Gtfsrt2lc({});
+    let fail = null;
+
+    try {
+        await gtfsrt2lc.handleResponse({ statusCode: 401 });
+    } catch (err) {
+        fail = err;
+    }
+    expect(fail).toBeDefined();
+
+    const readStream = new Readable({ objectMode: true, read() {}});
+    gtfsrt2lc.handleResponse({ 
+        statusCode: 200,
+        headers: { 'content-encoding': 'fake-format' },
+        body: Promise.resolve(readStream)
+    }).then(result => {
+        expect(result).toBe(false);
+    });
+    readStream.push(null);
 });
 
 test('Cover GtfsIndex functions', async () => {
