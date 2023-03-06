@@ -216,6 +216,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
     await levelIndexes.trips.close();
     await levelIndexes.stops.close();
     await levelIndexes.stop_times.close();
+    await levelIndexes.calendar.close();
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in jsonld format (no objectMode)', async () => {
@@ -467,6 +468,35 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     let finished = await stream_end;
     expect(finished).toBeTruthy();
     expect(cancelledConnections.length).toBe(9);
+});
+
+test('Test processing of feed without trip start date and time (use test/data/bustang.pb) with MemStore', async () => {
+    grt = new Gtfsrt2lc({ path: './test/data/bustang.pb', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/bustang.gtfs.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
+    grt.setIndexes(indexes);
+
+    let connStream = await grt.parse({ format: 'turtle', objectMode: true });
+    let connections = [];
+
+    expect.assertions(2);
+
+    connStream.on('data', conn => {
+        connections.push(conn);
+    });
+
+    let stream_end = new Promise(resolve => {
+        connStream.on('end', () => {
+            resolve(true);
+        });
+        connStream.on('error', () => {
+            resolve(false);
+        });
+    });
+
+    let finished = await stream_end;
+    expect(finished).toBeTruthy();
+    expect(connections.length).toBe(365);
 });
 
 test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with MemStore', async () => {
