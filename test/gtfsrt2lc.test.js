@@ -1,5 +1,6 @@
 const fs = require('fs');
 const del = require('del');
+const { Readable } = require('stream');
 const uri_templates = require('uri-templates');
 const GtfsIndex = require('../lib/GtfsIndex');
 const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
@@ -216,6 +217,7 @@ test('Check all parsed connections are consistent regarding departure and arriva
     await levelIndexes.trips.close();
     await levelIndexes.stops.close();
     await levelIndexes.stop_times.close();
+    await levelIndexes.calendar.close();
 });
 
 test('Parse real-time update (test/data/realtime_rawdata) and give it back in jsonld format (no objectMode)', async () => {
@@ -469,6 +471,35 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
     expect(cancelledConnections.length).toBe(9);
 });
 
+test('Test processing of feed without trip start date and time (use test/data/bustang.pb) with MemStore', async () => {
+    grt = new Gtfsrt2lc({ path: './test/data/bustang.pb', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/bustang.gtfs.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
+    grt.setIndexes(indexes);
+
+    let connStream = await grt.parse({ format: 'turtle', objectMode: true });
+    let connections = [];
+
+    expect.assertions(2);
+
+    connStream.on('data', conn => {
+        connections.push(conn);
+    });
+
+    let stream_end = new Promise(resolve => {
+        connStream.on('end', () => {
+            resolve(true);
+        });
+        connStream.on('error', () => {
+            resolve(false);
+        });
+    });
+
+    let finished = await stream_end;
+    expect(finished).toBeTruthy();
+    expect(connections.length).toBe(365);
+});
+
 test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with MemStore', async () => {
     grt = new Gtfsrt2lc({ path: './test/data/realtime_rawdata_v2', uris: mock_uris });
     let gti = new GtfsIndex({ path: './test/data/static_rawdata_v2.zip' });
@@ -562,6 +593,63 @@ test('Test measures to produce consistent connections', () => {
     grt.checkUpdate(update, prevUpdate, staticData, 2, 10, serviceDay, timestamp);
     expect(update['arrival']['delay']).toBe(60);
     expect(update['arrival']['time']).toBe(new Date('2020-03-03T08:21:00.000Z').getTime() / 1000);
+});
+
+test('Non-existent gtfs-rt file throws exception', async () => {
+    grt = new Gtfsrt2lc({ path: './data/path/to/fake.file', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/bustang.gtfs.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
+    grt.setIndexes(indexes);
+
+    let failed = null;
+
+    try {
+        const connStream = await grt.parse({ format: 'json', objectMode: true });
+    } catch (err) {
+        failed = err;
+    }
+
+    expect(failed).toBeDefined()
+});
+
+test('Missing index throws exception', async () => {
+    grt = new Gtfsrt2lc({ path: './data/path/bustang.pb', uris: mock_uris });
+    let gti = new GtfsIndex({ path: './test/data/bustang.gtfs.zip' });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
+    grt.setIndexes(indexes);
+    grt.stops = null;
+
+    let failed = null;
+
+    try {
+        const connStream = await grt.parse({ format: 'json', objectMode: true });
+    } catch (err) {
+        failed = err;
+    }
+
+    expect(failed).toBeDefined()
+});
+
+test('Cover Gtfsrt2LC functions', async () => {
+    const gtfsrt2lc = new Gtfsrt2lc({});
+    let fail = null;
+
+    try {
+        await gtfsrt2lc.handleResponse({ statusCode: 401 });
+    } catch (err) {
+        fail = err;
+    }
+    expect(fail).toBeDefined();
+
+    const readStream = new Readable({ objectMode: true, read() {}});
+    gtfsrt2lc.handleResponse({ 
+        statusCode: 200,
+        headers: { 'content-encoding': 'fake-format' },
+        body: Promise.resolve(readStream)
+    }).then(result => {
+        expect(result).toBe(false);
+    });
+    readStream.push(null);
 });
 
 test('Cover GtfsIndex functions', async () => {
