@@ -2,6 +2,7 @@ const fs = require('fs');
 const del = require('del');
 const { Readable } = require('stream');
 const uri_templates = require('uri-templates');
+const { Level } = require('level');
 const GtfsIndex = require('../lib/GtfsIndex');
 const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
 const Utils = require('../lib/Utils');
@@ -112,6 +113,50 @@ test('Extract all indexes when source is given as decompressed folder', async ()
     expect(indexes.stops).toBeDefined();
     expect(indexes.stop_times).toBeDefined();
     await del(['./test/data/decompressed'], { force: true });
+});
+
+test('Historic records are used to prune unchanged connections', async () => {
+    expect.assertions(4);
+    const historyDB = new Level('./test/data/history.db', { valueEncoding: 'json' });
+    const gti = new GtfsIndex({ path: static_path });
+    const indexes = await gti.getIndexes({ store: 'MemStore' });
+
+    // First run
+    const grt1 = new Gtfsrt2lc({ 
+        path: rt_path,
+        uris: mock_uris,
+    });
+    grt1.setIndexes({ ...indexes, historyDB });
+    const connStream1 = await grt1.parse({ format: 'jsonld', objectMode: true });
+    let count1 = 0;
+    const endStream = new Promise(res => {
+        connStream1.on('end', () => res(true))
+            .on('error', () => res(false));
+    });
+    connStream1.on('data', conn => { count1++; });
+    const success1 = await endStream;
+
+    // Second run
+    const grt2 = new Gtfsrt2lc({ 
+        path: rt_path,
+        uris: mock_uris,
+    });
+    grt2.setIndexes({ ...indexes, historyDB });
+    const connStream2 = await grt2.parse({ format: 'jsonld', objectMode: true });
+    let count2 = 0;
+    const endStream2 = new Promise(res => {
+        connStream2.on('end', () => res(true))
+            .on('error', () => res(false));
+    });
+    connStream2.on('data', conn => { count2++; });
+    const success2 = await endStream2;
+    
+    expect(success1).toBeTruthy();
+    expect(count1).toBeGreaterThan(0);
+    expect(success2).toBeTruthy();
+    expect(count2).toBe(0);
+
+    await del(['./test/data/history.db'], { force: true });
 });
 
 test('Check all parsed connections are consistent regarding departure and arrival times', async () => {
@@ -641,8 +686,8 @@ test('Cover Gtfsrt2LC functions', async () => {
     }
     expect(fail).toBeDefined();
 
-    const readStream = new Readable({ objectMode: true, read() {}});
-    gtfsrt2lc.handleResponse({ 
+    const readStream = new Readable({ objectMode: true, read() { } });
+    gtfsrt2lc.handleResponse({
         statusCode: 200,
         headers: { 'content-encoding': 'fake-format' },
         body: Promise.resolve(readStream)
