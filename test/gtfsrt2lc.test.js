@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { jest, test, expect } = require('@jest/globals');
 const del = require('del');
 const { Readable } = require('stream');
 const uri_templates = require('uri-templates');
@@ -100,9 +100,8 @@ test('Extract all indexes from sample static GTFS data (test/data/static_rawdata
 
 test('Extract all indexes when source is given as decompressed folder', async () => {
     // First decompress GTFS zip file
-    const fileStream = fs.createReadStream(static_path);
     const sourcePath = './test/data/decompressed';
-    await Utils.unzipStream(fileStream, sourcePath);
+    Utils.unzip(static_path, sourcePath);
     // Extract indexes
     expect.assertions(4);
     const gti = new GtfsIndex({ path: sourcePath });
