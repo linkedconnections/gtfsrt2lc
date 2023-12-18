@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { test, expect } = require('@jest/globals');
 const del = require('del');
 const { Readable } = require('stream');
 const uri_templates = require('uri-templates');
