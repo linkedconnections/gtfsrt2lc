@@ -1,11 +1,11 @@
-const { jest, test, expect } = require('@jest/globals');
-const del = require('del');
-const { Readable } = require('stream');
-const uri_templates = require('uri-templates');
-const { Level } = require('level');
-const GtfsIndex = require('../lib/GtfsIndex');
-const Gtfsrt2lc = require('../lib/Gtfsrt2LC');
-const Utils = require('../lib/Utils');
+import { jest, test, expect } from '@jest/globals';
+import { deleteAsync as del } from 'del';
+import { Readable } from 'stream';
+import utpl from 'uri-templates';
+import { Level } from 'level';
+import { GtfsIndex } from '../lib/GtfsIndex';
+import { Gtfsrt2LC } from '../lib/Gtfsrt2LC';
+import Utils from '../lib/Utils';
 
 const static_path = './test/data/static_rawdata.zip';
 const rt_path = './test/data/realtime_rawdata';
@@ -35,7 +35,7 @@ jest.setTimeout(180000);
 
 test('Obtain the list of trips to be updated from GTFS-RT data', async () => {
     expect.assertions(2);
-    grt = new Gtfsrt2lc({ path: rt_path, uris: mock_uris });
+    grt = new Gtfsrt2LC({ path: rt_path, uris: mock_uris });
     updatedTrips = await grt.getUpdatedTrips();
     expect(updatedTrips).toBeDefined();
     expect(updatedTrips.length).toBeGreaterThan(0);
@@ -121,7 +121,7 @@ test('Historic records are used to prune unchanged connections', async () => {
     const indexes = await gti.getIndexes({ store: 'MemStore' });
 
     // First run
-    const grt1 = new Gtfsrt2lc({ 
+    const grt1 = new Gtfsrt2LC({ 
         path: rt_path,
         uris: mock_uris,
     });
@@ -136,7 +136,7 @@ test('Historic records are used to prune unchanged connections', async () => {
     const success1 = await endStream;
 
     // Second run
-    const grt2 = new Gtfsrt2lc({ 
+    const grt2 = new Gtfsrt2LC({ 
         path: rt_path,
         uris: mock_uris,
     });
@@ -485,7 +485,7 @@ test('Stop gaps introduced by the GTFS-RT updates wrt the static schedule are fi
 });
 
 test('Check cancelled vehicle detection and related Connections (use test/data/cancellation_realtime_rawdata) with MemStore', async () => {
-    grt = new Gtfsrt2lc({ path: './test/data/cancellation_realtime_rawdata', uris: mock_uris });
+    grt = new Gtfsrt2LC({ path: './test/data/cancellation_realtime_rawdata', uris: mock_uris });
     let gti = new GtfsIndex({ path: './test/data/cancellation_static_rawdata.zip' });
     const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
@@ -516,7 +516,7 @@ test('Check cancelled vehicle detection and related Connections (use test/data/c
 });
 
 test('Test processing of feed without trip start date and time (use test/data/bustang.pb) with MemStore', async () => {
-    grt = new Gtfsrt2lc({ path: './test/data/bustang.pb', uris: mock_uris });
+    grt = new Gtfsrt2LC({ path: './test/data/bustang.pb', uris: mock_uris });
     let gti = new GtfsIndex({ path: './test/data/bustang.gtfs.zip' });
     const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
@@ -545,7 +545,7 @@ test('Test processing of feed without trip start date and time (use test/data/bu
 });
 
 test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with MemStore', async () => {
-    grt = new Gtfsrt2lc({ path: './test/data/realtime_rawdata_v2', uris: mock_uris });
+    grt = new Gtfsrt2LC({ path: './test/data/realtime_rawdata_v2', uris: mock_uris });
     let gti = new GtfsIndex({ path: './test/data/static_rawdata_v2.zip' });
     const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
@@ -575,7 +575,7 @@ test('Test parsing a GTFS-RT v2.0 file (use test/data/realtime_rawdata_v2) with 
 });
 
 test('Test parsing a GTFS-RT feed that does not provide explicit tripIds (use test/data/no_trips_realtime_rawdata)', async () => {
-    grt = new Gtfsrt2lc({ path: './test/data/no_trips_realtime_rawdata', uris: mock_uris });
+    grt = new Gtfsrt2LC({ path: './test/data/no_trips_realtime_rawdata', uris: mock_uris });
     let gti = new GtfsIndex({ path: './test/data/no_trips_static_rawdata.zip' });
     const indexes = await gti.getIndexes({ store: 'LevelStore', deduce: true });
     grt.setIndexes(indexes);
@@ -640,7 +640,7 @@ test('Test measures to produce consistent connections', () => {
 });
 
 test('Non-existent gtfs-rt file throws exception', async () => {
-    grt = new Gtfsrt2lc({ path: './data/path/to/fake.file', uris: mock_uris });
+    grt = new Gtfsrt2LC({ path: './data/path/to/fake.file', uris: mock_uris });
     let gti = new GtfsIndex({ path: './test/data/bustang.gtfs.zip' });
     const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
@@ -657,7 +657,7 @@ test('Non-existent gtfs-rt file throws exception', async () => {
 });
 
 test('Missing index throws exception', async () => {
-    grt = new Gtfsrt2lc({ path: './data/path/bustang.pb', uris: mock_uris });
+    grt = new Gtfsrt2LC({ path: './data/path/bustang.pb', uris: mock_uris });
     let gti = new GtfsIndex({ path: './test/data/bustang.gtfs.zip' });
     const indexes = await gti.getIndexes({ store: 'MemStore' });
     grt.setIndexes(indexes);
@@ -675,7 +675,7 @@ test('Missing index throws exception', async () => {
 });
 
 test('Cover Gtfsrt2LC functions', async () => {
-    const gtfsrt2lc = new Gtfsrt2lc({});
+    const gtfsrt2lc = new Gtfsrt2LC({});
     let fail = null;
 
     try {
@@ -730,7 +730,7 @@ test('Cover Utils functions', async () => {
 
     // Test for URI building function
     const connTimes = Utils.resolveURI(
-        uri_templates("http://example.org/test/{connection.departureTime(yyyyMMdd)}/{connection.arrivalTime(yyyyMMdd)}"),
+        utpl("http://example.org/test/{connection.departureTime(yyyyMMdd)}/{connection.arrivalTime(yyyyMMdd)}"),
         { departureTime: new Date('2022-09-27'), arrivalTime: new Date('2022-09-27') }
     );
 
