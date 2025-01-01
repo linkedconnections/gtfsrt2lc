@@ -1,8 +1,8 @@
 {
   "name": "gtfsrt2lc",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Converts the GTFS-RT to Linked Connections",
-  "main": "./Gtfsrt2LC.js",
+  "main": "./index.js",
   "type": "module",
   "bin": {
     "gtfsrt2lc": "bin/gtfsrt2lc.js",
