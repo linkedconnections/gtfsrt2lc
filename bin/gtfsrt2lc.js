@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const GtfsIndex = require('../lib/GtfsIndex');
-const Gtfsrt2LC = require('../lib/Gtfsrt2LC');
-const { Level } = require('level');
-const program = require('commander');
+import fs from 'fs';
+import { GtfsIndex } from '../lib/GtfsIndex.js';
+import { Gtfsrt2LC } from '../lib/Gtfsrt2LC.js';
+import { Level } from 'level';
+import { program } from 'commander';
 
 program
     .option('-r --real-time <realTime>', 'URL/path to gtfs-rt feed')
@@ -18,27 +18,27 @@ program
     .option('-h --history <history>', 'Path to historic Connection LevelStore for differential updates')
     .parse(process.argv);
 
-if (!program.realTime) {
+if (!program.opts().realTime) {
     console.error('Please provide a url or a path to a GTFS-RT feed');
     console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
     process.exit();
 }
 
-if (!program.static) {
+if (!program.opts().static) {
     console.error('Please provide a url or a path to a GTFS feed');
     console.error("GTFS-RT to linked connections converter use --help to discover how to use it");
     process.exit();
 }
 
-if (!program.store) {
-    program.store = 'MemStore';
+if (!program.opts().store) {
+    program.opts().store = 'MemStore';
 }
 
 // Load URIs template
 let template = null;
 try {
-    if (program.urisTemplate) {
-        template = JSON.parse(fs.readFileSync(program.urisTemplate, 'utf8'));
+    if (program.opts().urisTemplate) {
+        template = JSON.parse(fs.readFileSync(program.opts().urisTemplate, 'utf8'));
     }
 } catch (err) {
     console.error('Please provide a valid path to a template file');
@@ -46,12 +46,12 @@ try {
     process.exit();
 }
 // Get resulting data format
-const format = program.format || 'json';
+const format = program.opts().format || 'json';
 // Set HTTP custom headers, e.g., API keys
 let headers = {};
-if (program.headers) {
+if (program.opts().headers) {
     try {
-        headers = JSON.parse(program.headers);
+        headers = JSON.parse(program.opts().headers);
     } catch (err) {
         console.error(err);
         console.error('Please provide a valid JSON string for the extra HTTP headers');
@@ -62,13 +62,13 @@ if (program.headers) {
 
 // Load historic connections store (if any)
 let historyDB = null;
-if(program.history) {
-    historyDB = new Level(program.history, { valueEncoding: 'json' });
+if(program.opts().history) {
+    historyDB = new Level(program.opts().history, { valueEncoding: 'json' });
 }
 
 let t0 = new Date();
-const gtfsrt2lc = new Gtfsrt2LC({ path: program.realTime, uris: template, headers: headers });
-const gtfsIndexer = new GtfsIndex({ path: program.static, headers: headers });
+const gtfsrt2lc = new Gtfsrt2LC({ path: program.opts().realTime, uris: template, headers: headers });
+const gtfsIndexer = new GtfsIndex({ path: program.opts().static, headers: headers });
 
 async function processUpdate(store, grep, deduce) {
     console.error("Converting the GTFS-RT feed to Linked Connections");
@@ -99,4 +99,4 @@ async function processUpdate(store, grep, deduce) {
     }
 }
 
-processUpdate(program.store, program.grep, program.deduce);
+processUpdate(program.opts().store, program.opts().grep, program.opts().deduce);
